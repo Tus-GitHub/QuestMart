@@ -2,9 +2,9 @@
 
 export default function Navbar(){
     return(
-        <div className="flex justify-between items-center text-white h-18  border-b-1 text-md">
+        <div className="flex justify-between items-center text-white h-18 text-md">
             <div className="pl-10">
-                <button className="hover:text-red-700 text-sm">STORE</button>
+                <button className="hover:text-red-700 text-xl italic tracking-widest">STORE</button>
             </div>
             <div className="flex gap-8">
                 <button className="hover:text-red-700">PlayStation</button>

@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+@keyframes border-rgb {
+    0% { border-color: rgb(255, 0, 0); } /* Red */
+    25% { border-color: rgb(0, 255, 0); } /* Green */
+    50% { border-color: rgb(0, 0, 255); } /* Blue */
+    75% { border-color: rgb(255, 255, 0); } /* Yellow */
+    100% { border-color: rgb(255, 0, 0); } /* Back to Red */
+  }
