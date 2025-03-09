@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import ListingItems from "./component/ListingItems";
 
-export default function Home(){
+export default function Home (){
 
   const[isOpen, setIsOpen] = useState(false);
   const[searchQuery, setSearchQuery] = useState("");
@@ -52,7 +52,7 @@ export default function Home(){
       </div> */}
       <div className="h-[500px] w-full relative items-center pl-44 flex">
         <div
-          className="absolute inset-0 bg-cover  bg-center"
+          className="absolute z-0 inset-0 bg-cover  bg-center"
             style={{
               backgroundImage:"url('/Front-page.jpg')"
             }}
@@ -70,16 +70,16 @@ export default function Home(){
           </div>
         </span>
       </div>
-      <div className="flex gap-x-4">
-        <div className="bg-[#282828] w-[480px] min-h-screen flex flex-col">
+      <div className="flex pl-16 pr-8">
+        {/* <div className="bg-[#121212] w-[480px] min-h-screen flex flex-col">
           <p className="text-white text-center text-3xl p-8">High Demands</p>
-          <div className="grid grid-cols-2 pl-2 pt-3 gap-y-2">
+          <div className="grid grid-cols-2 pl-2 pt-3 gap-y-4 text-white">
             <ListingItems />
             <ListingItems />
             <ListingItems />
             <ListingItems />
           </div>
-        </div>
+        </div> */}
         <div>
           <div className="flex gap-x-4 h-10 relative">
           <input
@@ -87,19 +87,19 @@ export default function Home(){
             placeholder="Search games..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-[800px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-[1200px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
-            <button className="bg-white w-[200px] text-left pl-6 relative flex items-center" onMouseEnter={enter} onMouseLeave={exit} onClick={click}>Genre<span className="ml-24">⏷</span></button>
+            <button className="bg-white w-[200px] text-left pl-6 relative flex items-center rounded-lg" onMouseEnter={enter} onMouseLeave={exit} onClick={click}>Genre<span className="ml-24">⏷</span></button>
             {(isOpen || isClick) &&(
-              <div className="bg-white absolute top-10 z-10 right-0 w-[200px] "onMouseEnter={enter} onMouseLeave={exit}>
+              <div className="bg-white absolute top-10 z-10 right-0 w-[200px] rounded-lg"onMouseEnter={enter} onMouseLeave={exit}>
                 <ul className="text-center p-2">
                   {["Trending", "Action", "Adventure", "Shooter", "Battle Royale", "Sports & Racing"].map((genre)=>(
                     <li
                       key={genre}
-                      className="px-2 py-2 hover:bg-red-200 cursor-pointer"
+                      className="px-2 py-2 hover:bg-red-200 cursor-pointer borde-red-400 border-1 mb-1"
                       onClick={()=> {
                         handleSelect(genre);
-                        setIsClick(!isClick);
+                        setIsClick(false);
                         setIsOpen(!isOpen);
                       }}
                     >
@@ -111,7 +111,7 @@ export default function Home(){
             )}
           </div>
           {selectedGenre && <p className="text-white pt-6 text-3xl pb-10">{selectedGenre}</p>}
-          <div className="grid grid-cols-4 gap-y-4">
+          <div className="grid grid-cols-6 gap-y-6 text-white">
             <ListingItems />
             <ListingItems />
             <ListingItems />

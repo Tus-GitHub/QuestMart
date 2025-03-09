@@ -2,7 +2,7 @@
 
 export default function ListingItems(){
     return (
-        <div className="w-56 bg-white h-72">
+        <div className="w-56 bg-[#282828] h-72">
             <img 
                 src="/GTA-V.jpg"
                 className="w-56 h-52"
