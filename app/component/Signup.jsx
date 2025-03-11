@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from "react";
+import { RxCross2 } from "react-icons/rx";
+
 
 export default function Signup({setAuthMode, setIsOpen}){
 
@@ -33,7 +35,8 @@ export default function Signup({setAuthMode, setIsOpen}){
 
     return(
         <div className="absolute flex flex-col right-0  top-[70px] w-[600px] h-[500px] z-50  backdrop-blur-3xl items-center">
-            <form className="flex flex-col items-center  pt-6 border-red-300 border-2 w-[500px] h-[480px] m-4 gap-4" onSubmit={handleSubmit}>
+            <form className="flex flex-col items-center  pt-6 border-red-300 border-2 w-[500px] h-[480px] m-4 gap-4 justify-center" onSubmit={handleSubmit}>
+            <button onClick={() => setIsOpen(false)} className="text-white absolute top-8 right-16 hover:text-red-700 pl-96 text-xl"><RxCross2 className="bg-red-400 rounded-full text-2xl p-1 hover:bg-white " /></button>
                 <p className="mr-10">UserName: <span className="pl-2">
                     <input 
                         type='text'
@@ -77,7 +80,6 @@ export default function Signup({setAuthMode, setIsOpen}){
                         Sign In
                     </button>
                 </p>
-                <button onClick={() => setIsOpen(false)} className="text-white mt-2 hover:text-red-700">Close</button>
             </form>
         </div>
     )
