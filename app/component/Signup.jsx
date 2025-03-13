@@ -1,5 +1,6 @@
 'use client';
 
+import { Router } from "next/router";
 import { useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 
@@ -16,7 +17,7 @@ export default function Signup({setAuthMode, setIsOpen}){
         });
     }
 
-    const handleSubmit = (e) =>{
+    const handleSubmit = async (e) =>{
         e.preventDefault();
 
         if(!formData.username || !formData.email || !formData.password || !formData.confirmPassword){
@@ -27,8 +28,28 @@ export default function Signup({setAuthMode, setIsOpen}){
             setError("ConfirmPassword is not matching with Paswword");
             return;
         }
-        setError("");
-        console.log("Form is submited:", formData);
+        const{confirmPassword, ...rest} = formData;
+        try{
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signup`,
+                {
+                    method:"POST",
+                    headers:{
+                        "COntent-type":"application/json",
+                    },
+                    body: JSON.stringify(rest),
+                }
+            );
+            const data = await res.json();
+            if(data.success === false){
+                setError(data.message);
+                return;
+            }
+            setError(null);
+            setAuthMode("signin");
+        }catch(error){
+            console.log(error);
+            setError(error.message);
+        }
     };
 
 
@@ -36,7 +57,7 @@ export default function Signup({setAuthMode, setIsOpen}){
     return(
         <div className="absolute flex flex-col right-0  top-[70px] w-[600px] h-[500px] z-50  backdrop-blur-3xl items-center">
             <form className="flex flex-col items-center  pt-6 border-red-300 border-2 w-[500px] h-[480px] m-4 gap-4 justify-center" onSubmit={handleSubmit}>
-            <button onClick={() => setIsOpen(false)} className="text-white absolute top-8 right-16 hover:text-red-700 pl-96 text-xl"><RxCross2 className="bg-red-400 rounded-full text-2xl p-1 hover:bg-white " /></button>
+            <button onClick={() => setIsOpen(false)} className="text-white absolute top-8 right-16 hover:text-red-700 text-xl"><RxCross2 className="bg-red-400 rounded-full text-2xl p-1 hover:bg-white " /></button>
                 <p className="mr-10">UserName: <span className="pl-2">
                     <input 
                         type='text'
