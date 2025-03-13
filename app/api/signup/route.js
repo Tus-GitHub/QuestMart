@@ -1,4 +1,4 @@
-import connectDB from "@/app/lib/mdConnection";
+import connectDB from "@/lib/mdConnection";
 import User from "@/app/models/User";
 import bcryptjs from 'bcryptjs';
 
