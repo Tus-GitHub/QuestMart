@@ -1,3 +1,4 @@
+import { Providers } from "@/redux/provider";
 import Navbar from "./component/Navbar";
 import "./globals.css";
 
@@ -10,10 +11,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <main className="bg-black min-h-screen">
-          <Navbar />
-          {children}
-        </main>
+        <Providers>
+          <main className="bg-black min-h-screen">
+            <Navbar />
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
