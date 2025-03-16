@@ -2,10 +2,10 @@
 
 export default function ListingItems(){
     return (
-        <div className="w-56 bg-[#282828] h-72">
+        <div className="bg-[#282828] md:h-72 md:w-56 h-52 w-26 md:text-base text-xs">
             <img 
                 src="/GTA-V.jpg"
-                className="w-56 h-52"
+                className="md:w-56 md:h-52 w-26 h-32"
             />
             <p>Grand Theft Auto V</p>
             <p>Genre: Shooter, Action</p>
