@@ -47,16 +47,18 @@ export default function Navbar() {
     };
   }, [lastScrollY]);
 
-  const handleSignOut = ()=>{
-    console.log("signing Out")
+  const handleSignOut = async ()=>{
       try{
         dispatch(signOutUserStart());
-        console.log("SignOut Started");
-        dispatch(signOutUserSuccess("sign Out"));
-        console.log("Signed-Out Successfully");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signout`);
+        const data = await res.json();
+        console.log(data.message)
+        if(data.success === false){
+          dispatch(signOutUserFailure(data.message))
+        }
+        dispatch(signOutUserSuccess(data.user));
       }catch(error){
         dispatch(signOutUserFailure(error.message));
-        console.error("SignOut Error:", error.message);
       }
   }
 
@@ -104,8 +106,8 @@ export default function Navbar() {
           {dropDownOpen && (
             <div className="absolute right-2 mt-2 w-28 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
               <ul className="py-2 ">
-                <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl">Profile</li>
-                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl" onClick={handleSignOut}>Sign Out</li>
+                <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl"><button>Profile</button></li>
+                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl"><button onClick={handleSignOut}>Sign Out</button></li>
               </ul>
             </div>
           )}
