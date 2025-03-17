@@ -50,7 +50,7 @@ export default function Navbar() {
   const handleSignOut = async ()=>{
       try{
         dispatch(signOutUserStart());
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signout`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`);
         const data = await res.json();
         console.log(data.message)
         if(data.success === false){

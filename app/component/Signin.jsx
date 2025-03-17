@@ -26,7 +26,7 @@ export default function Signin({setAuthMode, setIsOpen}){
         e.preventDefault();
         try{
             dispatch(signInStart());
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signin`,
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signin`,
                 {
                     method:"POST",
                     headers:{
@@ -41,6 +41,9 @@ export default function Signin({setAuthMode, setIsOpen}){
                 return;
             } 
             dispatch(signInSuccess(data.user));
+            setTimeout(()=>{
+                setIsOpen(false);
+            }, 800);
         }catch(error){
             dispatch(signInFailure(error.message || "An error occured"));
         }

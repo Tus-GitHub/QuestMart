@@ -33,7 +33,7 @@ export default function Signup({setAuthMode, setIsOpen}){
         }
         const{confirmPassword, ...rest} = formData;
         try{
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/signup`,
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`,
                 {
                     method:"POST",
                     headers:{
