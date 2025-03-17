@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Signup from "./Signup";
 import Signin from "./Signin";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { signOutUserFailure, signOutUserStart, signOutUserSuccess } from "@/redux/user/userSlice";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,7 +17,8 @@ export default function Navbar() {
 
   const {currentUser} = useSelector(state => state.user);
   const dropDownRef = useRef(null);
-
+  const dispatch = useDispatch();
+  
   const handleScroll = () => {
     if (window.scrollY > lastScrollY) {
       setIsVisible(false);
@@ -44,6 +46,19 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [lastScrollY]);
+
+  const handleSignOut = ()=>{
+    console.log("signing Out")
+      try{
+        dispatch(signOutUserStart());
+        console.log("SignOut Started");
+        dispatch(signOutUserSuccess("sign Out"));
+        console.log("Signed-Out Successfully");
+      }catch(error){
+        dispatch(signOutUserFailure(error.message));
+        console.error("SignOut Error:", error.message);
+      }
+  }
 
   return (
     <div
@@ -90,7 +105,7 @@ export default function Navbar() {
             <div className="absolute right-2 mt-2 w-28 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
               <ul className="py-2 ">
                 <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl">Profile</li>
-                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl">Sign Out</li>
+                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl" onClick={handleSignOut}>Sign Out</li>
               </ul>
             </div>
           )}
