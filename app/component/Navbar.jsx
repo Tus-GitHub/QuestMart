@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Signup from "./Signup";
 import Signin from "./Signin";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { useSelector } from "react-redux";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,10 @@ export default function Navbar() {
   const [isClicked, setIsClicked] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [dropDownOpen, setDropDownOpen] = useState(false);
+
+  const {currentUser} = useSelector(state => state.user);
+  const dropDownRef = useRef(null);
 
   const handleScroll = () => {
     if (window.scrollY > lastScrollY) {
@@ -20,6 +25,18 @@ export default function Navbar() {
     }
     setLastScrollY(window.scrollY);
   };
+
+  useEffect(()=>{
+    function handleClickOutside(e){
+      if(dropDownRef.current && !dropDownRef.current.contains(e.target)){
+        setDropDownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return ()=>{
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+  },[]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
@@ -58,12 +75,33 @@ export default function Navbar() {
         <button className="hover:text-red-700 md:hidden visible">X-Box</button>
         <button className="hover:text-red-700">Blogs</button>
       </div>
-      <button
-        className="p-3 bg-red-700 rounded-full hover:scale-115 mr-8 text-xs md:text-base transition transform"
-        onClick={() => {setIsOpen(!isOpen); setAuthMode("signin")}}
-      >
-        SIGNIN
-      </button>
+      {currentUser ? (
+        <div className="relative" ref={dropDownRef}>
+          <div
+            onClick={()=> setDropDownOpen(!dropDownOpen)}
+            className="rounded-full w-9 h-9 transition-all duration-300 hover:shadow-[0_0_15px_6px_#b91c1c] cursor-pointer mr-6"
+          >
+            <img 
+              src={currentUser.avatar}
+              className="w-9 h-9 rounded-full object-cover mr-8"
+            />
+          </div>
+          {dropDownOpen && (
+            <div className="absolute right-2 mt-2 w-28 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
+              <ul className="py-2 ">
+                <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl">Profile</li>
+                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl">Sign Out</li>
+              </ul>
+            </div>
+          )}
+        </div>
+      ):(<button
+          className="p-3 bg-red-700 rounded-full hover:scale-115 mr-8 text-xs md:text-base transition transform"
+          onClick={() => {setIsOpen(!isOpen); setAuthMode("signin")}}
+        >
+          SIGNIN
+        </button>
+      )}
       {isOpen && authMode === "signup" && <Signup setIsOpen={setIsOpen} setAuthMode={setAuthMode} />}
       {isOpen && authMode === "signin" && <Signin setIsOpen={setIsOpen} setAuthMode={setAuthMode} />}
     </div>
