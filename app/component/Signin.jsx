@@ -50,7 +50,7 @@ export default function Signin({setAuthMode, setIsOpen}){
 
     return(
         <div className="absolute flex flex-col right-0  top-[70px] md:w-[600px] md:h-[500px] w-[360px] h-[370px] z-50  backdrop-blur-3xl items-center">
-            <div className="flex flex-col border-red-300 border-2 w-[300px] h-[350px] items-center justify-center m-6">
+            <div className="flex flex-col text-sm md:text-base border-red-300 border-2 w-[300px] h-[350px] md:w-[500px] md:h-[480px] items-center justify-center m-6">
                 <button onClick={() => setIsOpen(false)}  className="text-white absolute top-8 md:right-16 right-10 hover:text-red-700 flex justify-end  text-xl"><RxCross2 className="bg-red-400 rounded-full text-2xl p-1 hover:bg-white " /></button>
                 <form className="flex flex-col items-center  pt-6  gap-y-4 justify-center pb-4" onSubmit={handleSubmit}>
                     <p className=" flex flex-col md:flex-row items-center">UserName / Email: <span className="pl-2">

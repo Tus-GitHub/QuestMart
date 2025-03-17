@@ -60,7 +60,7 @@ export default function Navbar() {
       </div>
       <button
         className="p-3 bg-red-700 rounded-full hover:scale-115 mr-8 text-xs md:text-base transition transform"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {setIsOpen(!isOpen); setAuthMode("signin")}}
       >
         SIGNIN
       </button>
