@@ -6,6 +6,7 @@ import Signin from "./Signin";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useDispatch, useSelector } from "react-redux";
 import { signOutUserFailure, signOutUserStart, signOutUserSuccess } from "@/redux/user/userSlice";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +19,8 @@ export default function Navbar() {
   const {currentUser} = useSelector(state => state.user);
   const dropDownRef = useRef(null);
   const dispatch = useDispatch();
+
+  const router = useRouter();
   
   const handleScroll = () => {
     if (window.scrollY > lastScrollY) {
@@ -68,7 +71,7 @@ export default function Navbar() {
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <button className="hover:text-red-700 md:text-xl italic tracking-widest md:pl-10 pl-2 text-sm">
+      <button className="hover:text-red-700 md:text-xl italic tracking-widest md:pl-10 pl-2 text-sm" onClick={()=> router.push("/")}>
         STORE
       </button>
       <div className="flex md:gap-8 gap-2 text-xs md:text-base">
@@ -106,7 +109,7 @@ export default function Navbar() {
           {dropDownOpen && (
             <div className="absolute right-2 mt-2 w-28 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
               <ul className="py-2 ">
-                <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl"><button>Profile</button></li>
+                <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl"><button onClick={()=> router.push("/profile")}>Profile</button></li>
                 <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl"><button onClick={handleSignOut}>Sign Out</button></li>
               </ul>
             </div>

@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <Providers>
-          <main className="bg-black min-h-screen">
+          <main className="bg-black min-h-screen pt-[72px]">
             <Navbar />
             {children}
           </main>
