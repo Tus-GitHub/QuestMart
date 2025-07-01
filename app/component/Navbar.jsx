@@ -62,7 +62,7 @@ export default function Navbar() {
         dispatch(signOutUserSuccess(data.user));
       }catch(error){
         dispatch(signOutUserFailure(error.message));
-      }
+      } 
   }
 
   return (
