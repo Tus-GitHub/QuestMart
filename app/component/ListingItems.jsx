@@ -1,15 +1,15 @@
 'use client';
 
-export default function ListingItems(){
+export default function ListingItems({games}){
     return (
         <div className="bg-[#282828] md:h-72 md:w-56 h-52 w-26 md:text-base text-xs">
             <img 
-                src="/GTA-V.jpg"
+                src={games.image}
                 className="md:w-56 md:h-52 w-26 h-32"
             />
-            <p>Grand Theft Auto V</p>
-            <p>Genre: Shooter, Action</p>
-            <p>Rs. 1900</p>
+            <p>{games.name}</p>
+            <p>Genre: {games.genre}</p>
+            <p>Rs. {games.price}</p>
         </div>
     )
 }
