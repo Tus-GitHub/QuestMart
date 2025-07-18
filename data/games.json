@@ -1,0 +1,44 @@
+[
+    {
+        "id":1,
+        "name":"Grand Theft Auto V",
+        "genre":"Action,Shooter",
+        "price":"1900",
+        "image":"/GTA-V.jpg"
+    },
+    {
+        "id":2,
+        "name":"Grand Theft Auto V",
+        "genre":"Action,Shooter",
+        "price":"1900",
+        "image":"/GTA-V.jpg"
+    },
+    {
+        "id":3,
+        "name":"Grand Theft Auto V",
+        "genre":"Action,Shooter",
+        "price":"1900",
+        "image":"/GTA-V.jpg"
+    },
+    {
+        "id":4,
+        "name":"Grand Theft Auto V",
+        "genre":"Action,Shooter",
+        "price":"1900",
+        "image":"/GTA-V.jpg"
+    },
+    {
+        "id":5,
+        "name":"Grand Theft Auto V",
+        "genre":"Action,Shooter",
+        "price":"1900",
+        "image":"/GTA-V.jpg"
+    },
+    {
+        "id":6,
+        "name":"Test",
+        "genre":"Test",
+        "price":"2900",
+        "image":"/GTA-V.jpg"
+    }
+]

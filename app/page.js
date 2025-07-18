@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from "react";
+import { useEffect, useState } from "react";
 import ListingItems from "./component/ListingItems";
 
 export default function Home (){
@@ -9,6 +9,23 @@ export default function Home (){
   const[searchQuery, setSearchQuery] = useState("");
   const[selectedGenre, setSelectedGenre]=useState("Trending");
   const[isClick, setIsClick] = useState(false);
+  const[games, setGames] = useState(null);
+
+  useEffect(()=> {
+    const fetchGames = async() => {
+      try{
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/games`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+      const data = await res.json();
+      setGames(data);
+      }catch(error){
+        console.log("Error-", error);
+      }
+    }
+    fetchGames();
+  },[])
 
   const click = ()=>{
     setIsClick(!isClick);
@@ -28,28 +45,6 @@ export default function Home (){
 
   return (
     <div className="flex flex-col gap-y-4">
-      {/* <div className="flex gap-4">
-        <div className="w-1/2 flex items-center justify-center h-64 hover:text-8xl text-7xl font-serif relative">
-          <div
-          className="absolute inset-0 bg-cover bg-center blur-xs hover:blur-lg"
-            style={{
-              backgroundImage:"url('/HD-wallpaper-collage-video-game.jpg')"
-            }}
-          >
-          </div>
-          <span className="relative z-10 text-white">BUY</span>
-        </div>
-        <div className="w-1/2 h-64 flex items-center justify-center hover:text-8xl text-7xl font-serif relative">
-          <div
-            className="absolute inset-0 bg-cover bg-center blur-xs hover:blur-lg"
-              style={{
-                backgroundImage:"url('/HD-wallpaper-collage-video-game.jpg')"
-              }}
-          >
-          </div>
-          <span className="relative z-10 text-white">SELL</span>
-        </div>
-      </div> */}
       <div className="md:h-[600px] h-[500px] w-full relative items-center md:pl-44 pl-6 flex">
         <div
           className="absolute z-0 inset-0 bg-cover pt-10 bg-center"
@@ -71,15 +66,6 @@ export default function Home (){
         </span>
       </div>
       <div className="flex md:pl-8 pl-2 md:pr-4 pr-2">
-        {/* <div className="bg-[#121212] w-[480px] min-h-screen flex flex-col">
-          <p className="text-white text-center text-3xl p-8">High Demands</p>
-          <div className="grid grid-cols-2 pl-2 pt-3 gap-y-4 text-white">
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-          </div>
-        </div> */}
         <div className="w-full">
           <div className="flex gap-x-4 h-10 relative">
           <input
@@ -112,14 +98,9 @@ export default function Home (){
           </div>
           {selectedGenre && <p className="text-white pt-6 md:text-5xl text-3xl pb-10">{selectedGenre}</p>}
           <div className="grid md:grid-cols-6 gap-y-6 grid-cols-3 text-white">
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
-            <ListingItems />
+            {games && games.map((games)=> (
+              <ListingItems games={games} key={games.id}/>
+            ))}
           </div>
         </div>
       </div>
