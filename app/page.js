@@ -7,9 +7,24 @@ export default function Home (){
 
   const[isOpen, setIsOpen] = useState(false);
   const[searchQuery, setSearchQuery] = useState("");
-  const[selectedGenre, setSelectedGenre]=useState("Trending");
+  const[selectedGenre, setSelectedGenre]=useState("All");
   const[isClick, setIsClick] = useState(false);
   const[games, setGames] = useState(null);
+  const[filteredGames, setFilteredGames] = useState(null);
+
+  useEffect(()=> {
+    setFilteredGames(games);
+    if(selectedGenre === "All"){
+      setFilteredGames(games);
+    } else{
+      const filtered = games.filter((game)=> {
+        const genres  = game.genre.split(',').map((g)=> g.trim().toLowerCase());
+        return genres.includes(selectedGenre.toLowerCase());
+      });
+      setFilteredGames(filtered);
+    }
+  },[selectedGenre,games]);
+  console.log("Filtered Games-",filteredGames);
 
   useEffect(()=> {
     const fetchGames = async() => {
@@ -79,7 +94,7 @@ export default function Home (){
             {(isOpen || isClick) &&(
               <div className="bg-white absolute top-10 z-10 right-0 w-[200px] rounded-lg"onMouseEnter={enter} onMouseLeave={exit}>
                 <ul className="text-center p-2">
-                  {["Trending", "Action", "Adventure", "Shooter", "Battle Royale", "Sports & Racing"].map((genre)=>(
+                  {["All","Trending", "Action", "Adventure", "Shooter", "Battle Royale", "Sports & Racing"].map((genre)=>(
                     <li
                       key={genre}
                       className="px-2 py-2 hover:bg-red-200 cursor-pointer borde-red-400 border-1 mb-1"
@@ -98,7 +113,7 @@ export default function Home (){
           </div>
           {selectedGenre && <p className="text-white pt-6 md:text-5xl text-3xl pb-10">{selectedGenre}</p>}
           <div className="grid md:grid-cols-6 gap-y-6 grid-cols-3 text-white">
-            {games && games.map((games)=> (
+            {filteredGames && filteredGames.map((games)=> (
               <ListingItems games={games} key={games.id}/>
             ))}
           </div>
