@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ListingItems from "./component/ListingItems";
 
 export default function Home (){
@@ -11,35 +11,60 @@ export default function Home (){
   const[isClick, setIsClick] = useState(false);
   const[games, setGames] = useState(null);
   const[filteredGames, setFilteredGames] = useState(null);
+  const gamesCalled = useRef(false);
 
   useEffect(()=> {
-    setFilteredGames(games);
+   if (!games) return;
+    console.log("Games-", games);
     if(selectedGenre === "All"){
       setFilteredGames(games);
     } else{
       const filtered = games.filter((game)=> {
-        const genres  = game.genre.split(',').map((g)=> g.trim().toLowerCase());
-        return genres.includes(selectedGenre.toLowerCase());
+        if (!Array.isArray(game.genres)) return false;
+
+        return game.genres.some((genre) => {
+          const target = selectedGenre.toLowerCase();
+          return genre.name.toLowerCase() === target || genre.slug.toLowerCase() === target;
+        });
       });
-      setFilteredGames(filtered);
+      const uniqueById = filtered.filter(
+        (game, index, self) =>
+          index === self.findIndex((g) => g.id === game.id)
+      );
+
+      setFilteredGames(uniqueById);
     }
   },[selectedGenre,games]);
   console.log("Filtered Games-",filteredGames);
 
+  const API_KEY = process.env.NEXT_PUBLIC_ROWG_KEY;
+
   useEffect(()=> {
+    if(gamesCalled.current)return;
     const fetchGames = async() => {
+      let allGames = [];
+      const pageSize = 40;
+      const totalPages = 3; 
       try{
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/games`);
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+        for (let page = 1; page <= totalPages; page++) {
+          const res = await fetch(`https://api.rawg.io/api/games?key=${API_KEY}&page_size=3000&page=${page}`);
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+            gamesCalled.current = false;
+          }
+          const data = await res.json();
+          allGames = [...allGames, ...data.results];
         }
-      const data = await res.json();
-      setGames(data);
+      gamesCalled.current = true;
+      setGames(allGames);
       }catch(error){
         console.log("Error-", error);
+        gamesCalled.current = false;
       }
     }
-    fetchGames();
+    if(!gamesCalled.current){
+    fetchGames(); 
+    }
   },[])
 
   const click = ()=>{
