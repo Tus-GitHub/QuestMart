@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ListingItems from "./component/ListingItems";
+import { useRouter } from "next/navigation";
 
 export default function Home (){
 
@@ -12,6 +13,7 @@ export default function Home (){
   const[games, setGames] = useState(null);
   const[filteredGames, setFilteredGames] = useState(null);
   const gamesCalled = useRef(false);
+  const router = useRouter();
 
   useEffect(()=> {
    if (!games) return;
@@ -136,9 +138,19 @@ export default function Home (){
               </div>
             )}
           </div>
-          {selectedGenre && <p className="text-white pt-6 md:text-5xl text-3xl pb-10">{selectedGenre}</p>}
-          <div className="grid md:grid-cols-6 gap-y-6 grid-cols-3 text-white">
-            {filteredGames && filteredGames.map((games)=> (
+          <div className="flex justify-between">
+            {selectedGenre && <p className="text-white pt-6 md:text-5xl text-3xl pb-10">{selectedGenre}</p>}
+            <button 
+              className="pr-10 cursor-pointer" 
+              onClick={() => router.push(`/items?genre=${encodeURIComponent(selectedGenre)}`)}  
+            >
+              <span className="text-blue-400">
+                View More&gt;&gt;&gt;
+              </span>
+            </button>
+          </div>
+          <div className="grid md:grid-cols-5 gap-y-8 grid-cols-3 text-white pb-40">
+            {filteredGames && filteredGames.slice(0,18).map((games)=> (
               <ListingItems games={games} key={games.id}/>
             ))}
           </div>
