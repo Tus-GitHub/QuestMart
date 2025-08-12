@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ListingItems from "./component/ListingItems";
 import { useRouter } from "next/navigation";
+import { gameStore } from "./store/gameStore";
 
 export default function Home (){
 
@@ -14,6 +15,12 @@ export default function Home (){
   const[filteredGames, setFilteredGames] = useState(null);
   const gamesCalled = useRef(false);
   const router = useRouter();
+  const allGames = gameStore(state => state.games);
+  
+  useEffect(()=>{
+    console.log("All Games-",allGames)
+    setGames(allGames);
+  },[allGames])
 
   useEffect(()=> {
    if (!games) return;
@@ -39,35 +46,35 @@ export default function Home (){
   },[selectedGenre,games]);
   console.log("Filtered Games-",filteredGames);
 
-  const API_KEY = process.env.NEXT_PUBLIC_ROWG_KEY;
+  // const API_KEY = process.env.NEXT_PUBLIC_ROWG_KEY;
 
-  useEffect(()=> {
-    if(gamesCalled.current)return;
-    const fetchGames = async() => {
-      let allGames = [];
-      const pageSize = 40;
-      const totalPages = 3; 
-      try{
-        for (let page = 1; page <= totalPages; page++) {
-          const res = await fetch(`https://api.rawg.io/api/games?key=${API_KEY}&page_size=3000&page=${page}`);
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-            gamesCalled.current = false;
-          }
-          const data = await res.json();
-          allGames = [...allGames, ...data.results];
-        }
-      gamesCalled.current = true;
-      setGames(allGames);
-      }catch(error){
-        console.log("Error-", error);
-        gamesCalled.current = false;
-      }
-    }
-    if(!gamesCalled.current){
-    fetchGames(); 
-    }
-  },[])
+  // useEffect(()=> {
+  //   if(gamesCalled.current)return;
+  //   const fetchGames = async() => {
+  //     let allGames = [];
+  //     const pageSize = 40;
+  //     const totalPages = 3; 
+  //     try{
+  //       for (let page = 1; page <= totalPages; page++) {
+  //         const res = await fetch(`https://api.rawg.io/api/games?key=${API_KEY}&page_size=3000&page=${page}`);
+  //         if (!res.ok) {
+  //           throw new Error(`HTTP error! status: ${res.status}`);
+  //           gamesCalled.current = false;
+  //         }
+  //         const data = await res.json();
+  //         allGames = [...allGames, ...data.results];
+  //       }
+  //     gamesCalled.current = true;
+  //     setGames(allGames);
+  //     }catch(error){
+  //       console.log("Error-", error);
+  //       gamesCalled.current = false;
+  //     }
+  //   }
+  //   if(!gamesCalled.current){
+  //   fetchGames(); 
+  //   }
+  // },[])
 
   const click = ()=>{
     setIsClick(!isClick);
