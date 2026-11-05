@@ -1,168 +1,347 @@
-'use client';
-
+"use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import ListingItems from "./component/ListingItems";
-import { useRouter } from "next/navigation";
-import { gameStore } from "./store/gameStore";
+import {
+  ArrowUpRightIcon,
+  ArrowRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
+  PauseIcon,
+  PlayIcon,
+  ShieldCheckIcon,
+  ArrowPathIcon,
+  CubeIcon,
+} from "@heroicons/react/24/outline";
+import { catalog, genres } from "@/data/catalog.mjs";
+import { useUI } from "./components/UIProvider";
+import Media from "./components/Media";
+import GamePreview from "./components/GamePreview";
 
-const GENRES = ["All", "Action", "Adventure", "Shooter", "RPG", "Sports", "Indie", "Strategy"];
-
-export default function Home() {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedGenre, setSelectedGenre] = useState("All");
-    const [filteredGames, setFilteredGames] = useState(null);
-    const router = useRouter();
-    const allGames = gameStore(state => state.games);
-    const loading = gameStore(state => state.loading);
-    const error = gameStore(state => state.error);
-    const hasFetched = gameStore(state => state.hasFetched);
-    const fetchGames = gameStore(state => state.fetchGames);
-
-    useEffect(() => {
-        let result = allGames;
-
-        if (selectedGenre !== "All") {
-            result = result.filter(game => {
-                if (!Array.isArray(game.genres)) return false;
-                return game.genres.some(g =>
-                    g?.name?.toLowerCase().includes(selectedGenre.toLowerCase()) ||
-                    g?.slug?.toLowerCase().includes(selectedGenre.toLowerCase())
-                );
-            });
-        }
-
-        if (searchQuery.trim()) {
-            result = result.filter(g =>
-                g.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        const unique = result.filter((g, i, self) => i === self.findIndex(x => x.id === g.id));
-        setFilteredGames(unique);
-    }, [selectedGenre, allGames, searchQuery]);
-
-    const isLoading = loading || (!hasFetched && !error);
-
-    return (
-        <div className="flex flex-col bg-black min-h-screen">
-
-            {/* ── Hero ── */}
-            <div className="relative h-[480px] md:h-[580px] flex items-center overflow-hidden">
-                <div
-                    className="absolute inset-0 bg-cover bg-center scale-105"
-                    style={{ backgroundImage: "url('/Front-page.jpg')" }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/10" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-
-                <div className="relative z-10 px-6 md:px-16 max-w-2xl">
-                    <p className="text-red-500 text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3">
-                        The Ultimate Game Marketplace
-                    </p>
-                    <h1 className="text-3xl md:text-6xl font-extrabold text-white leading-tight mb-4">
-                        Turn Old Games Into<br />
-                        <span className="text-red-500">New Adventures</span>
-                    </h1>
-                    <p className="text-gray-400 text-sm md:text-base mb-8 max-w-md">
-                        Buy and sell pre-owned games at the best prices. Thousands of titles across all platforms.
-                    </p>
-                    <div className="flex gap-3">
-                        <button className="bg-red-600 hover:bg-red-700 active:scale-95 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-lg font-bold transition-all hover:shadow-lg hover:shadow-red-900/50 text-sm md:text-base">
-                            SELL GAMES
-                        </button>
-                        <button onClick={() => router.push("/items")} className="bg-white/10 hover:bg-white/20 active:scale-95 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-lg font-bold border border-white/20 hover:border-white/40 transition-all text-sm md:text-base">
-                            BROWSE
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Catalog ── */}
-            <div className="px-4 md:px-8 py-8">
-
-                {/* Search */}
-                <div className="relative mb-6 max-w-lg">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-base select-none">🔍</span>
-                    <input
-                        type="text"
-                        placeholder="Search games..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-[#111] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-red-600 focus:bg-[#1a1a1a] transition-all text-sm"
-                    />
-                </div>
-
-                {/* Genre pills */}
-                <div className="flex gap-2 flex-wrap mb-8">
-                    {GENRES.map(genre => (
-                        <button
-                            key={genre}
-                            onClick={() => setSelectedGenre(genre)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
-                                selectedGenre === genre
-                                    ? "bg-red-600 text-white border-red-600 shadow-lg shadow-red-900/40"
-                                    : "bg-transparent text-gray-400 border-gray-700 hover:border-gray-500 hover:text-white"
-                            }`}
-                        >
-                            {genre}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Section header */}
-                <div className="flex justify-between items-center mb-5">
-                    <div className="flex items-baseline gap-3">
-                        <h2 className="text-white text-xl md:text-2xl font-bold">
-                            {selectedGenre === "All" ? "All Games" : selectedGenre}
-                        </h2>
-                        {!isLoading && !error && filteredGames && (
-                            <span className="text-gray-600 text-sm">{filteredGames.length} titles</span>
-                        )}
-                    </div>
-                    <button
-                        onClick={() => router.push(`/items?genre=${encodeURIComponent(selectedGenre)}`)}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium transition flex items-center gap-1 group"
-                    >
-                        View All
-                        <span className="transition-transform group-hover:translate-x-0.5">›</span>
-                    </button>
-                </div>
-
-                {/* Game grid */}
-                {isLoading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-16">
-                        {Array.from({ length: 12 }).map((_, i) => (
-                            <div key={i} className="bg-[#1a1a1a] rounded-xl overflow-hidden animate-pulse">
-                                <div className="w-full h-36 md:h-44 bg-gray-800" />
-                                <div className="p-3 space-y-2">
-                                    <div className="h-3 bg-gray-700 rounded w-3/4" />
-                                    <div className="h-2 bg-gray-800 rounded w-1/2" />
-                                    <div className="h-5 bg-gray-700 rounded w-1/3 mt-2" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : error ? (
-                    <div role="alert" className="text-center py-20">
-                        <p className="text-gray-400 mb-4">{error}</p>
-                        <button onClick={() => fetchGames({ force: true })} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-semibold transition">
-                            Try again
-                        </button>
-                    </div>
-                ) : filteredGames && filteredGames.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-16">
-                        {filteredGames.slice(0, 18).map(game => (
-                            <ListingItems games={game} key={game.id} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-24 text-gray-600">
-                        <p className="text-4xl mb-3">🎮</p>
-                        <p className="text-lg font-medium text-gray-400">No games found</p>
-                        <p className="text-sm mt-1">{allGames.length ? "Try a different genre or search term" : "The catalog is empty right now. Please check back later."}</p>
-                    </div>
-                )}
-            </div>
+export default function Discover() {
+  const [slide, setSlide] = useState(0),
+    [paused, setPaused] = useState(false),
+    [selected, setSelected] = useState(null),
+    [genre, setGenre] = useState("All games"),
+    [search, setSearch] = useState(""),
+    [onlySaved, setOnlySaved] = useState(false);
+  const { saved, toggleSaved } = useUI();
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (paused || motion.matches) return;
+    const timer = setInterval(() => setSlide((value) => (value + 1) % 3), 7000);
+    return () => clearInterval(timer);
+  }, [paused]);
+  const hero = catalog[slide];
+  const games = catalog.filter(
+    (game) =>
+      (genre === "All games" || game.genre === genre) &&
+      game.name.toLowerCase().includes(search.toLowerCase()) &&
+      (!onlySaved || saved.includes(game.id)),
+  );
+  return (
+    <div className="discover-page">
+      <section
+        className="hero-section"
+        aria-label="Featured games"
+        aria-roledescription="carousel"
+      >
+        <div className="hero-image" key={hero.id}>
+          <Media src={hero.hero} alt="" priority sizes="100vw" />
         </div>
-    );
+        <div className="hero-gradient" />
+        <div className="hero-grid" />
+        <div className="hero-content page-width">
+          <div className="eyebrow hero-eyebrow">
+            <span className="live-dot" /> MADE FOR YOUR NEXT ADVENTURE
+          </div>
+          <h1>
+            New worlds.
+            <br />
+            Same <em>love of play.</em>
+          </h1>
+          <p>
+            Your next favorite is waiting on someone’s shelf.
+            <br className="desktop-only" /> Discover, trade, and keep the
+            adventure going.
+          </p>
+          <div className="hero-actions">
+            <Link href="/marketplace" className="button primary">
+              Explore marketplace
+              <ArrowUpRightIcon />
+            </Link>
+            <Link href="/sell" className="button glass">
+              Sell your games
+              <ArrowRightIcon />
+            </Link>
+          </div>
+          <div className="hero-proof">
+            <span>
+              <ShieldCheckIcon />
+              Player-to-player
+            </span>
+            <span>
+              <ArrowPathIcon />
+              Pre-owned. Replayed.
+            </span>
+          </div>
+        </div>
+        <div className="hero-bottom page-width">
+          <button className="featured-game" onClick={() => setSelected(hero)}>
+            <span className="tiny-cover">
+              <Media src={hero.image} alt="" sizes="80px" />
+            </span>
+            <span>
+              <small>IN THE SPOTLIGHT</small>
+              <strong>{hero.name}</strong>
+            </span>
+            <ArrowUpRightIcon />
+          </button>
+          <div className="slide-controls">
+            <span className="slide-number">
+              0{slide + 1}
+              <i> / 03</i>
+            </span>
+            <button
+              className="icon-button"
+              aria-label="Previous featured game"
+              onClick={() => setSlide((slide + 2) % 3)}
+            >
+              <ChevronLeftIcon />
+            </button>
+            <button
+              className="icon-button"
+              aria-label={paused ? "Play slideshow" : "Pause slideshow"}
+              onClick={() => setPaused(!paused)}
+            >
+              {paused ? <PlayIcon /> : <PauseIcon />}
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Next featured game"
+              onClick={() => setSlide((slide + 1) % 3)}
+            >
+              <ChevronRightIcon />
+            </button>
+          </div>
+        </div>
+        <div
+          className="hero-progress"
+          key={hero.slug}
+          style={{ animationPlayState: paused ? "paused" : "running" }}
+        />
+      </section>
+      <div className="platform-strip">
+        <div className="page-width">
+          <span>
+            YOUR PLATFORM.
+            <br />
+            <b>YOUR PLAYGROUND.</b>
+          </span>
+          {[
+            ["PS5", "PlayStation"],
+            ["Xbox Series X", "Xbox"],
+            ["Nintendo Switch", "Nintendo Switch"],
+            ["PC", "PC gaming"],
+          ].map(([platform, label]) => (
+            <Link
+              href={"/marketplace?platform=" + encodeURIComponent(platform)}
+              key={platform}
+            >
+              <span className="platform-glyph">
+                {platform === "PS5"
+                  ? "△○×□"
+                  : platform === "Xbox Series X"
+                    ? "X"
+                    : platform === "PC"
+                      ? "⌘"
+                      : "◧"}
+              </span>
+              {label}
+              <ArrowUpRightIcon />
+            </Link>
+          ))}
+        </div>
+      </div>
+      <section className="section page-width" id="discover">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">FIND YOUR NEXT OBSESSION</span>
+            <h2>
+              A world worth getting lost in<span className="accent">.</span>
+            </h2>
+          </div>
+          <Link className="text-link" href="/marketplace">
+            Shop player listings
+            <ArrowUpRightIcon />
+          </Link>
+        </div>
+        <div className="library-toolbar">
+          <div className="genre-tabs" aria-label="Game genres">
+            {genres.map((value) => (
+              <button
+                key={value}
+                className={genre === value ? "active" : ""}
+                aria-pressed={genre === value}
+                onClick={() => setGenre(value)}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+          <div className="library-tools">
+            <button
+              className={"icon-button " + (onlySaved ? "saved" : "")}
+              aria-label="Show saved games"
+              aria-pressed={onlySaved}
+              onClick={() => setOnlySaved(!onlySaved)}
+            >
+              <HeartIcon />
+            </button>
+            <label className="search-field">
+              <MagnifyingGlassIcon />
+              <input
+                aria-label="Search game library"
+                placeholder="Find a game…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="game-grid">
+          {games.map((game, index) => (
+            <article
+              className="game-card reveal-in"
+              key={game.id}
+              style={{
+                animationDelay: Math.min(index, 7) * 45 + "ms",
+                "--game-color": game.color,
+              }}
+            >
+              <button
+                className="game-card-image"
+                onClick={() => setSelected(game)}
+                aria-label={"Preview " + game.name}
+              >
+                <Media src={game.image} alt={game.name} />
+                <span className="preview-hover">
+                  <PlayIcon /> Quick look
+                </span>
+                <span className="game-card-year">{game.year}</span>
+              </button>
+              <button
+                className={
+                  "save-game " + (saved.includes(game.id) ? "saved" : "")
+                }
+                aria-label={"Save " + game.name}
+                aria-pressed={saved.includes(game.id)}
+                onClick={() => toggleSaved(game.id)}
+              >
+                <HeartIcon />
+              </button>
+              <div className="game-card-info">
+                <span className="eyebrow">{game.genre}</span>
+                <button onClick={() => setSelected(game)}>
+                  <h3>{game.name}</h3>
+                  <ArrowUpRightIcon />
+                </button>
+                <span className="game-platforms">
+                  {game.platforms.slice(0, 3).join(" · ")}
+                  {game.platforms.length > 3 ? " + more" : ""}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+        {!games.length ? (
+          <div className="empty-state">
+            <MagnifyingGlassIcon />
+            <h3>No games in this quest.</h3>
+            <p>Try another search or explore a different genre.</p>
+            <button
+              className="button secondary"
+              onClick={() => {
+                setGenre("All games");
+                setSearch("");
+                setOnlySaved(false);
+              }}
+            >
+              Reset filters
+            </button>
+          </div>
+        ) : null}
+      </section>
+      <section className="sell-banner page-width">
+        <div className="sell-banner-decoration" aria-hidden="true">
+          <span>↗</span>
+          <span>+</span>
+          <span>○</span>
+        </div>
+        <div>
+          <span className="eyebrow">FINISHED IT? PASS IT ON.</span>
+          <h2>
+            Your shelf.
+            <br />
+            Someone else’s next adventure.
+          </h2>
+          <p>Turn the games you’ve loved into your next great story.</p>
+          <Link href="/sell" className="button primary">
+            List your first game
+            <ArrowUpRightIcon />
+          </Link>
+        </div>
+        <div className="banner-stack" aria-hidden="true">
+          {[catalog[3], catalog[0], catalog[1]].map((game) => (
+            <div key={game.id}>
+              <Media src={game.image} alt="" sizes="360px" />
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="section page-width how-section">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">LESS FRICTION. MORE PLAY.</span>
+            <h2>From shelf to next level.</h2>
+          </div>
+        </div>
+        <div className="steps-grid">
+          {[
+            [
+              "01",
+              "Find your next quest",
+              "Explore games, compare player listings, and choose your platform.",
+              MagnifyingGlassIcon,
+            ],
+            [
+              "02",
+              "Make it yours",
+              "See the actual copy, its condition, and the seller’s price before checkout.",
+              ShieldCheckIcon,
+            ],
+            [
+              "03",
+              "Keep the game going",
+              "Play it. Love it. Pass it on when you’re ready for something new.",
+              CubeIcon,
+            ],
+          ].map(([n, title, body, Icon]) => (
+            <div className="step-card" key={n}>
+              <div>
+                <Icon />
+                <span>{n}</span>
+              </div>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      {selected ? (
+        <GamePreview game={selected} onClose={() => setSelected(null)} />
+      ) : null}
+    </div>
+  );
 }

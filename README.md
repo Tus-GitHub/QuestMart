@@ -1,10 +1,12 @@
 # QuestMart
 
-A portfolio/college demo for buying and selling pre-owned physical games. Built with Next.js 15, React 19, Tailwind CSS, PostgreSQL and cookie-based JWT sessions.
+A live portfolio marketplace for buying and selling pre-owned physical games. Built with Next.js 15, React 19, Tailwind CSS, PostgreSQL and cookie-based JWT sessions.
 
 ## Current milestone
 
-Day 1 foundations are implemented: verified sessions, validated signup/signin, PostgreSQL schema and migrations, isolated local database tooling, catalog failure/retry states, automated tests and CI. Seller listing screens and test checkout are the next milestones; they are **not implemented yet**. RAWG catalog cards are reference game information, not seller inventory.
+The storefront now includes an animated responsive design, locally served game discovery, saved favorites and game previews. Authenticated sellers can upload photos, create/edit/remove listings and manage their inventory. Marketplace search, platform filters, price sorting, listing details and order views use PostgreSQL.
+
+Payments are deliberately disabled while Razorpay test credentials are deferred. The checkout page explains this before taking delivery details or reserving inventory. No real or simulated payment can be confirmed through the public API.
 
 The former MongoDB integration has been replaced. This creates a fresh database; old MongoDB users/data have not been imported.
 
@@ -99,9 +101,13 @@ The initial migration has been applied to both hosted branches. For future schem
 
 ## Remaining four-day work
 
-1. Day 1: hosting, PostgreSQL and verified authentication foundations are configured.
-2. Day 2: create/edit/remove listings, photo storage, listing details, actual inventory search and seller dashboard.
+1. Hosting, PostgreSQL, authentication, catalog availability and the responsive redesign are configured.
+2. Seller listings, owned-photo uploads through Vercel Blob, listing details, inventory search and seller studio are implemented.
 3. Day 3: payment-provider test checkout, verified payment events, transactional reservation and buyer/seller order views.
 4. Day 4: full two-account workflow, mobile/error QA, release, sample data and presentation materials.
 
-Payment integration, rate limiting, account recovery, photo uploads and marketplace screens are still pending. This is not ready to accept real payments.
+Payment-provider integration and webhook/reconciliation tests, account recovery, seller fulfillment, moderation, and final release hardening remain. This release does not accept payments.
+
+Run `node scripts/smoke-marketplace.mjs` against the local app on port 3010 to verify real uploads and listing permissions. It creates and removes only its own test accounts, listing and uploaded image. Supply BLOB_READ_WRITE_TOKEN locally for this check. Authentication, listing creation and uploads use PostgreSQL-backed rate limits.
+
+The editorial game library and its artwork are served locally, so catalog loading no longer depends on RAWG availability. Discovery references are separate from real seller inventory; no sample listings are presented as actual stock. Artwork remains owned by the respective publishers; each game links to its original Steam store page.
