@@ -87,17 +87,19 @@ node --input-type=module -e "import nextEnv from '@next/env'; import { spawnSync
 
 Integration tests create an isolated schema inside a rolled-back transaction. With the local app running, `npm run test:auth:smoke` checks signup, duplicate accounts, failed login, verified sessions, tampered cookies, cross-origin rejection and logout. It removes only its generated test account. The smoke test is restricted to localhost; set `SMOKE_BASE_URL` for another local port.
 
-GitHub Actions provisions PostgreSQL 17, migrates, lints, tests and builds. The workflow becomes active only after these changes are pushed.
+GitHub Actions provisions PostgreSQL 17, migrates, lints, tests and builds on pushes and pull requests.
 
-## Deployment preparation
+## Hosted deployment
 
-No hosted deployment is configured yet. Create a hosted PostgreSQL database and a Vercel project connected to this repository. Use the repository root containing `package.json` as the project root, with Node.js 22. Set `DATABASE_URL` to the hosted provider's connection URL with appropriate TLS, a fresh `JWT_SECRET`, and the optional RAWG key. Never use the local database URL in Vercel.
+The existing Vercel project is [quest-mart](https://vercel.com/tus-githubs-projects/quest-mart), connected to this repository's `main` branch. Its production address is [quest-mart.vercel.app](https://quest-mart.vercel.app). The project uses the repository root, Node.js 22 and Singapore functions.
 
-Apply migrations to the hosted demo database before testing authentication. Keep runtime connections pooled and avoid running migrations on every request. Start with a preview deployment and validate signup/signin there before release.
+PostgreSQL 17 is hosted in [Neon project questmart](https://console.neon.tech/app/projects/dry-dream-46133473), in Singapore. The `production` and `preview` branches are separate databases. Vercel's corresponding environments each have their own pooled `DATABASE_URL` and `JWT_SECRET`; both have `NEXT_PUBLIC_ROWG_KEY`. Database connections verify TLS certificates and use the `questmart_app` role. The migration owner credential is not supplied to the deployed application. Vercel's connection-pool helper releases idle connections before functions suspend.
+
+The initial migration has been applied to both hosted branches. For future schema changes, add a numbered SQL migration, test it against preview first, then apply it to production with an owner **direct** connection. Set `DATABASE_URL` for that migration process only and run `npm run db:migrate`; never replace the Vercel runtime URL with the owner credential or run migrations on every request. Production deploys follow pushes to `main`; other branches use preview credentials. Local `.env.local` remains configured for the local database. No hosted credentials are committed.
 
 ## Remaining four-day work
 
-1. Finish Day 1 hosted preview once hosting accounts are configured.
+1. Day 1: hosting, PostgreSQL and verified authentication foundations are configured.
 2. Day 2: create/edit/remove listings, photo storage, listing details, actual inventory search and seller dashboard.
 3. Day 3: payment-provider test checkout, verified payment events, transactional reservation and buyer/seller order views.
 4. Day 4: full two-account workflow, mobile/error QA, release, sample data and presentation materials.
