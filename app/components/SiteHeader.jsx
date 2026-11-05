@@ -48,6 +48,7 @@ export default function SiteHeader() {
             ["/marketplace", "Player market"],
             ["/sell", "Sell a game"],
             ["/orders", "My orders"],
+            ...(user?.role === "admin" ? [["/admin", "Admin"]] : []),
           ].map(([href, label]) => (
             <Link
               key={href}

@@ -343,6 +343,11 @@ export default function Sell() {
                       {item.platform} · {money(item.price_paise)}
                     </p>
                     <span className="status-pill">{item.status}</span>
+                    {item.moderation_status === "hidden" ? (
+                      <p className="small muted">
+                        Hidden by moderation: {item.moderation_reason}
+                      </p>
+                    ) : null}
                     {item.status === "available" ? (
                       <div className="listing-row-actions">
                         <button onClick={() => edit(item)}>Edit listing</button>

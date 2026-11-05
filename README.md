@@ -75,6 +75,24 @@ The browser restores identity through `GET /api/auth/me`, not localStorage. User
 
 Migrations run atomically under a PostgreSQL advisory lock and record checksums. Never edit an applied migration: add a new numbered SQL file. Order constraints are a foundation, not a checkout implementation. The upcoming order API must authorize users, reserve inventory in a transaction and verify payment-provider events.
 
+## Administration
+
+The protected `/admin` control room includes live totals and a 14-day activity chart, searchable/paginated player and listing management, order inspection, a before/after audit history, current-page CSV exports, and password management. CSV cells are escaped to prevent spreadsheet formula execution.
+
+Migration `003_admin.sql` adds database-backed roles, account suspension, session versions, listing moderation and `admin_audit`. Migration `004_audit_permissions.sql` removes inherited CRUD grants from the runtime role on the audit table, retaining only SELECT and INSERT. Signup always creates an ordinary user; a username of `admin` confers no permissions. Every admin API request checks the current database identity. Password, role and suspension changes invalidate old sessions. A setup password must be replaced before privileged access is unlocked.
+
+To bootstrap an existing, explicitly authorized account, run this operator-only command with the intended database configured. It requires both the exact username and expected email and records the elevation in the audit history:
+
+```sh
+node scripts/grant-admin.mjs <username> <expected-email>
+```
+
+For the deployed runtime role, grant `SELECT, INSERT` on `admin_audit` only; do not grant `UPDATE` or `DELETE`. Other runtime table grants remain unchanged. Apply and test the migration on preview before production. The application does not run this bootstrap command automatically.
+
+Admins can suspend/reactivate accounts, promote/demote other administrators after password reauthentication, and hide/restore listings without deleting order history. Self-lockout is blocked. Hidden listings and suspended sellers are excluded from public browsing and detail routes. Seller edits do not clear moderation holds.
+
+Order controls deliberately cannot mark payments paid or refunded. Unpaid, pending orders without provider reservations can be cancelled; paid, confirmed orders can be marked completed. Existing order snapshots are preserved. New-game Steam purchases happen externally and are not counted as QuestMart orders.
+
 ## Verification
 
 ```sh
@@ -83,7 +101,7 @@ npm test
 npm run build
 ```
 
-`npm test` runs unit tests and skips the PostgreSQL integration test unless `TEST_DATABASE_URL` is explicitly set. For local database integration checks without printing credentials:
+`npm test` runs unit tests and skips the PostgreSQL integration suites unless `TEST_DATABASE_URL` is explicitly set. Both integration suites use unique schemas inside rolled-back transactions. For local database integration checks without printing credentials:
 
 ```sh
 node --input-type=module -e "import nextEnv from '@next/env'; import { spawnSync } from 'node:child_process'; nextEnv.loadEnvConfig(process.cwd()); process.exit(spawnSync(process.execPath, ['--test'], { stdio: 'inherit', env: { ...process.env, TEST_DATABASE_URL: process.env.DATABASE_URL } }).status ?? 1)"
@@ -108,8 +126,8 @@ The initial migration has been applied to both hosted branches. For future schem
 3. Day 3: payment-provider test checkout, verified payment events, transactional reservation and buyer/seller order views.
 4. Day 4: full two-account workflow, mobile/error QA, release, sample data and presentation materials.
 
-Payment-provider integration and webhook/reconciliation tests, account recovery, seller fulfillment, moderation, and final release hardening remain. This release does not accept payments.
+Payment-provider integration and webhook/reconciliation tests, account recovery, seller fulfillment, and final release hardening remain. Admin moderation is implemented. This release does not accept payments.
 
 Run `node scripts/smoke-marketplace.mjs` against the local app on port 3010 to verify real uploads and listing permissions. It creates and removes only its own test accounts, listing and uploaded image. Supply BLOB_READ_WRITE_TOKEN locally for this check. Authentication, listing creation and uploads use PostgreSQL-backed rate limits.
 
-The editorial game library and its artwork are served locally, so catalog loading no longer depends on RAWG availability. Discovery references are separate from real seller inventory; no sample listings are presented as actual stock. Artwork remains owned by the respective publishers; each game links to its original Steam store page.
+Featured editorial artwork is served locally. The larger catalog uses a cached server adapter for Steam's public storefront, with an explicitly labeled editorial fallback on upstream failure. Discovery references are separate from real seller inventory; no sample listings are presented as actual stock. Artwork remains owned by the respective publishers; each game links to its original Steam store page.

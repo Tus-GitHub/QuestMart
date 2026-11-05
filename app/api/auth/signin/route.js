@@ -21,8 +21,8 @@ export async function POST(request) {
     const { identifier, password } = validateSignin(await readJson(request));
     await rateLimit(request, "signin", 30);
     const statement = identifier.includes("@")
-      ? "SELECT id, username, email, avatar, created_at, password_hash FROM users WHERE email = $1"
-      : "SELECT id, username, email, avatar, created_at, password_hash FROM users WHERE username = $1";
+      ? "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required FROM users WHERE email = $1"
+      : "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required FROM users WHERE username = $1";
     const {
       rows: [user],
     } = await query(statement, [identifier.toLowerCase()]);
@@ -32,6 +32,11 @@ export async function POST(request) {
     );
     if (!user || !valid)
       throw new ApiError(401, "Incorrect username/email or password.");
+    if (user.account_status !== "active")
+      throw new ApiError(
+        403,
+        "This account is suspended. Contact the site administrator.",
+      );
     return jsonResponse(
       {
         success: true,
@@ -40,7 +45,9 @@ export async function POST(request) {
       },
       200,
       {
-        "Set-Cookie": sessionCookie(createSessionToken(user.id)),
+        "Set-Cookie": sessionCookie(
+          createSessionToken(user.id, user.session_version),
+        ),
       },
     );
   } catch (error) {

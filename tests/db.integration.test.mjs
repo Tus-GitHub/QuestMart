@@ -26,6 +26,8 @@ test(
       assert.deepEqual(await applyMigrations(client), [
         "001_initial.sql",
         "002_marketplace.sql",
+        "003_admin.sql",
+        "004_audit_permissions.sql",
       ]);
       assert.deepEqual(await applyMigrations(client), []);
 
