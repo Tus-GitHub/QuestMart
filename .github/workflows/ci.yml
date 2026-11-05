@@ -1,0 +1,36 @@
+name: Validate QuestMart
+on:
+  push:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: questmart_test
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: questmart_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U questmart_test -d questmart_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://questmart_test:ci-only-password@localhost:5432/questmart_test
+      TEST_DATABASE_URL: postgresql://questmart_test:ci-only-password@localhost:5432/questmart_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run db:migrate
+      - run: npm test
+      # Builds do not need real database credentials or a live API connection.
+      - run: npm run build

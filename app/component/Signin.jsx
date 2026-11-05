@@ -1,96 +1,127 @@
 'use client';
 
-import { signInFailure, signInStart, signInSuccess } from "@/redux/user/userSlice";
+import { clearAuthError, signInFailure, signInStart, signInSuccess } from "@/redux/user/userSlice";
 import { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function Signin({setAuthMode, setIsOpen}){
-
-    const[formData, setFormData] = useState({});
+export default function Signin({ setAuthMode, setIsOpen }) {
+    const [formData, setFormData] = useState({});
     const { loading, error } = useSelector((state) => state.user);
     const dispatch = useDispatch();
 
-    useEffect(()=>{
-        dispatch(signInFailure(null));
-    }, [])
+    useEffect(() => {
+        dispatch(clearAuthError());
+    }, [dispatch]);
 
-    const handleChange = (e) =>{
-        setFormData({
-            ...formData,
-            [e.target.id] : e.target.value,
-        });
-    }
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
 
-    const handleSubmit = async (e) =>{
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        try{
+        if (loading) return;
+        try {
             dispatch(signInStart());
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signin`,
-                {
-                    method:"POST",
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify(formData),
-                }
-            );
+            const res = await fetch("/api/auth/signin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
             const data = await res.json();
-            if(!res.ok || data.success === false){
-                dispatch(signInFailure(data.message || "Sign In Failed"));
+            if (!res.ok || !data.success || !data.user) {
+                dispatch(signInFailure(data.message || "Sign in failed"));
                 return;
-            } 
+            }
             dispatch(signInSuccess(data.user));
-            setTimeout(()=>{
-                setIsOpen(false);
-            }, 800);
-        }catch(error){
-            dispatch(signInFailure(error.message || "An error occured"));
+            setIsOpen(false);
+        } catch (err) {
+            dispatch(signInFailure("Unable to sign in. Check your connection and try again."));
         }
     };
 
+    return (
+        /* Full-screen backdrop */
+        <div
+            className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
+        >
+            <div className="relative bg-[#111] border border-gray-800 rounded-2xl w-[90vw] max-w-md p-8 shadow-2xl">
 
+                {/* Close */}
+                <button
+                    aria-label="Close sign in"
+                    onClick={() => setIsOpen(false)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
+                >
+                    <RxCross2 className="text-xl" />
+                </button>
 
-    return(
-        <div className="absolute flex flex-col right-0  top-[70px] md:w-[600px] md:h-[500px] w-[360px] h-[370px] z-50  backdrop-blur-3xl items-center">
-            <div className="flex flex-col text-sm md:text-base border-red-300 border-2 w-[300px] h-[350px] md:w-[500px] md:h-[480px] items-center justify-center m-6">
-                <button onClick={() => setIsOpen(false)}  className="text-white absolute top-8 md:right-16 right-10 hover:text-red-700 flex justify-end  text-xl"><RxCross2 className="bg-red-400 rounded-full text-2xl p-1 hover:bg-white " /></button>
-                <form className="flex flex-col items-center  pt-6  gap-y-4 justify-center pb-4" onSubmit={handleSubmit}>
-                    <p className=" flex flex-col md:flex-row items-center">UserName / Email: <span className="pl-2">
+                {/* Header */}
+                <div className="mb-7 text-center">
+                    <h2 className="text-white text-2xl font-bold mb-1">Welcome back</h2>
+                    <p className="text-gray-500 text-sm">Sign in to your QuestMart account</p>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="identifier" className="text-gray-400 text-xs font-medium uppercase tracking-wide">
+                            Username or Email
+                        </label>
                         <input
-                            type='text'
-                            className="bg-transparent border-2 border-red-300 rounded-xl p-1 h-10 focus:bg-white focus:text-black"
-                            placeholder="Enter you name or email"
-                            onChange={handleChange}
+                            type="text"
                             id="identifier"
-                            name="identifier"
-                        />
-                        </span></p>
-                        <p className="md:ml-16 ml-2 flex flex-col md:flex-row items-center">Password: <span className="pl-2">
-                        <input 
-                            type='password'
-                            className="bg-transparent border-2 border-red-300 rounded-xl p-1 h-10 focus:bg-white focus:text-black"
-                            placeholder="Enter you password"
+                            autoComplete="username"
+                            required
+                            maxLength={254}
+                            placeholder="Enter your username or email"
                             onChange={handleChange}
-                            id="password"
-                            name="password"
+                            className="bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-600 transition"
                         />
-                        </span></p>
-                    <button 
-                        className="bg-red-500 p-2 mt-3 px-3 rounded-full hover:scale-110 uppercase disabled:opacity-95"
-                        disabled={loading}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="password" className="text-gray-400 text-xs font-medium uppercase tracking-wide">
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            autoComplete="current-password"
+                            required
+                            maxLength={72}
+                            placeholder="Enter your password"
+                            onChange={handleChange}
+                            className="bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-600 transition"
+                        />
+                    </div>
+
+                    {error && (
+                        <p role="alert" className="bg-red-900/30 border border-red-800 text-red-400 text-sm rounded-lg px-4 py-2">
+                            {error}
+                        </p>
+                    )}
+
+                    <button
                         type="submit"
+                        disabled={loading}
+                        className="mt-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-all active:scale-95"
                     >
-                        {loading? 'Loading....':'Sign In'}
+                        {loading ? "Signing in..." : "Sign In"}
                     </button>
                 </form>
-                {error && <p className="text-red-700 p-2">{error}</p>}
-                <p className="text-white mt-2">Don't have an account? 
-                    <button className="text-red-500 underline ml-1" type="button" onClick={() => setAuthMode("signup")}>
+
+                <p className="text-gray-500 text-sm text-center mt-5">
+                    Don&apos;t have an account?{" "}
+                    <button
+                        className="text-red-400 hover:text-red-300 font-medium transition"
+                        onClick={() => setAuthMode("signup")}
+                    >
                         Sign Up
                     </button>
                 </p>
             </div>
         </div>
-    )
+    );
 }

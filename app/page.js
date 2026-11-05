@@ -1,168 +1,168 @@
 'use client';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ListingItems from "./component/ListingItems";
 import { useRouter } from "next/navigation";
 import { gameStore } from "./store/gameStore";
 
-export default function Home (){
+const GENRES = ["All", "Action", "Adventure", "Shooter", "RPG", "Sports", "Indie", "Strategy"];
 
-  const[isOpen, setIsOpen] = useState(false);
-  const[searchQuery, setSearchQuery] = useState("");
-  const[selectedGenre, setSelectedGenre]=useState("All");
-  const[isClick, setIsClick] = useState(false);
-  const[games, setGames] = useState(null);
-  const[filteredGames, setFilteredGames] = useState(null);
-  const gamesCalled = useRef(false);
-  const router = useRouter();
-  const allGames = gameStore(state => state.games);
-  
-  useEffect(()=>{
-    console.log("All Games-",allGames)
-    setGames(allGames);
-  },[allGames])
+export default function Home() {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedGenre, setSelectedGenre] = useState("All");
+    const [filteredGames, setFilteredGames] = useState(null);
+    const router = useRouter();
+    const allGames = gameStore(state => state.games);
+    const loading = gameStore(state => state.loading);
+    const error = gameStore(state => state.error);
+    const hasFetched = gameStore(state => state.hasFetched);
+    const fetchGames = gameStore(state => state.fetchGames);
 
-  useEffect(()=> {
-   if (!games) return;
-    console.log("Games-", games);
-    if(selectedGenre === "All"){
-      setFilteredGames(games);
-    } else{
-      const filtered = games.filter((game)=> {
-        if (!Array.isArray(game.genres)) return false;
+    useEffect(() => {
+        let result = allGames;
 
-        return game.genres.some((genre) => {
-          const target = selectedGenre.toLowerCase();
-          return genre.name.toLowerCase() === target || genre.slug.toLowerCase() === target;
-        });
-      });
-      const uniqueById = filtered.filter(
-        (game, index, self) =>
-          index === self.findIndex((g) => g.id === game.id)
-      );
+        if (selectedGenre !== "All") {
+            result = result.filter(game => {
+                if (!Array.isArray(game.genres)) return false;
+                return game.genres.some(g =>
+                    g?.name?.toLowerCase().includes(selectedGenre.toLowerCase()) ||
+                    g?.slug?.toLowerCase().includes(selectedGenre.toLowerCase())
+                );
+            });
+        }
 
-      setFilteredGames(uniqueById);
-    }
-  },[selectedGenre,games]);
-  console.log("Filtered Games-",filteredGames);
+        if (searchQuery.trim()) {
+            result = result.filter(g =>
+                g.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
 
-  // const API_KEY = process.env.NEXT_PUBLIC_ROWG_KEY;
+        const unique = result.filter((g, i, self) => i === self.findIndex(x => x.id === g.id));
+        setFilteredGames(unique);
+    }, [selectedGenre, allGames, searchQuery]);
 
-  // useEffect(()=> {
-  //   if(gamesCalled.current)return;
-  //   const fetchGames = async() => {
-  //     let allGames = [];
-  //     const pageSize = 40;
-  //     const totalPages = 3; 
-  //     try{
-  //       for (let page = 1; page <= totalPages; page++) {
-  //         const res = await fetch(`https://api.rawg.io/api/games?key=${API_KEY}&page_size=3000&page=${page}`);
-  //         if (!res.ok) {
-  //           throw new Error(`HTTP error! status: ${res.status}`);
-  //           gamesCalled.current = false;
-  //         }
-  //         const data = await res.json();
-  //         allGames = [...allGames, ...data.results];
-  //       }
-  //     gamesCalled.current = true;
-  //     setGames(allGames);
-  //     }catch(error){
-  //       console.log("Error-", error);
-  //       gamesCalled.current = false;
-  //     }
-  //   }
-  //   if(!gamesCalled.current){
-  //   fetchGames(); 
-  //   }
-  // },[])
+    const isLoading = loading || (!hasFetched && !error);
 
-  const click = ()=>{
-    setIsClick(!isClick);
-  }
+    return (
+        <div className="flex flex-col bg-black min-h-screen">
 
-  const exit = () =>{
-    setIsOpen(false);
-  }
+            {/* ── Hero ── */}
+            <div className="relative h-[480px] md:h-[580px] flex items-center overflow-hidden">
+                <div
+                    className="absolute inset-0 bg-cover bg-center scale-105"
+                    style={{ backgroundImage: "url('/Front-page.jpg')" }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
 
-  const  enter = () => {
-    setIsOpen(true);
-  }
-
-  const handleSelect = (genre) =>{
-    setSelectedGenre(genre);
-  }
-
-  return (
-    <div className="flex flex-col gap-y-4">
-      <div className="md:h-[600px] h-[500px] w-full relative items-center md:pl-44 pl-6 flex">
-        <div
-          className="absolute z-0 inset-0 bg-cover pt-10 bg-center"
-            style={{
-              backgroundImage:"url('/Front-page.jpg')"
-            }}
-          >
-        </div>
-        <span className="relative bg-[#282828] border-4 rounded-lg animate-[border-rgb_3s_linear_infinite] md:text-xl text-sm md:w-80 w-56 h-72 text-white flex justify-center items-center text-center p-4" style={{
-        animation: "border-rgb 3s linear infinite"
-        }}>
-          <div className="">
-            <p className="md:text-xl text-lg font-serif text-white">Turn your old games into cash <br /><span className=""> & </span><br /> your cash into new adventures!</p>
-            <div className="flex flex-col gap-4 items-center md:pt-10 pt-3">
-              <button className="bg-[#e32926da] p-2 w-44 shadow-red-700 hover:shadow-xl">SELL</button>
-              <button className="bg-[#e32926da] p-2 w-44 shadow-red-700 hover:shadow-xl">BUY</button>
+                <div className="relative z-10 px-6 md:px-16 max-w-2xl">
+                    <p className="text-red-500 text-xs md:text-sm uppercase tracking-[0.2em] font-semibold mb-3">
+                        The Ultimate Game Marketplace
+                    </p>
+                    <h1 className="text-3xl md:text-6xl font-extrabold text-white leading-tight mb-4">
+                        Turn Old Games Into<br />
+                        <span className="text-red-500">New Adventures</span>
+                    </h1>
+                    <p className="text-gray-400 text-sm md:text-base mb-8 max-w-md">
+                        Buy and sell pre-owned games at the best prices. Thousands of titles across all platforms.
+                    </p>
+                    <div className="flex gap-3">
+                        <button className="bg-red-600 hover:bg-red-700 active:scale-95 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-lg font-bold transition-all hover:shadow-lg hover:shadow-red-900/50 text-sm md:text-base">
+                            SELL GAMES
+                        </button>
+                        <button onClick={() => router.push("/items")} className="bg-white/10 hover:bg-white/20 active:scale-95 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-lg font-bold border border-white/20 hover:border-white/40 transition-all text-sm md:text-base">
+                            BROWSE
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
-        </span>
-      </div>
-      <div className="flex md:pl-8 pl-2 md:pr-4 pr-2">
-        <div className="w-full">
-          <div className="flex gap-x-4 h-10 relative">
-          <input
-            type="text"
-            placeholder="Search games..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="md:w-5/6 w-4/5 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          />
-            <button className="bg-white md:w-1/6 w-1/5 text-left md:pl-6 md:pr-6 pr-1 pl-1 relative flex items-center rounded-lg justify-between md:text-base text-xs" onMouseEnter={enter} onMouseLeave={exit} onClick={click}>Genre<span className="">⏷</span></button>
-            {(isOpen || isClick) &&(
-              <div className="bg-white absolute top-10 z-10 right-0 w-[200px] rounded-lg"onMouseEnter={enter} onMouseLeave={exit}>
-                <ul className="text-center p-2">
-                  {["All","Trending", "Action", "Adventure", "Shooter", "Battle Royale", "Sports & Racing"].map((genre)=>(
-                    <li
-                      key={genre}
-                      className="px-2 py-2 hover:bg-red-200 cursor-pointer borde-red-400 border-1 mb-1"
-                      onClick={()=> {
-                        handleSelect(genre);
-                        setIsClick(false);
-                        setIsOpen(!isOpen);
-                      }}
+
+            {/* ── Catalog ── */}
+            <div className="px-4 md:px-8 py-8">
+
+                {/* Search */}
+                <div className="relative mb-6 max-w-lg">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-base select-none">🔍</span>
+                    <input
+                        type="text"
+                        placeholder="Search games..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-[#111] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-red-600 focus:bg-[#1a1a1a] transition-all text-sm"
+                    />
+                </div>
+
+                {/* Genre pills */}
+                <div className="flex gap-2 flex-wrap mb-8">
+                    {GENRES.map(genre => (
+                        <button
+                            key={genre}
+                            onClick={() => setSelectedGenre(genre)}
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                                selectedGenre === genre
+                                    ? "bg-red-600 text-white border-red-600 shadow-lg shadow-red-900/40"
+                                    : "bg-transparent text-gray-400 border-gray-700 hover:border-gray-500 hover:text-white"
+                            }`}
+                        >
+                            {genre}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Section header */}
+                <div className="flex justify-between items-center mb-5">
+                    <div className="flex items-baseline gap-3">
+                        <h2 className="text-white text-xl md:text-2xl font-bold">
+                            {selectedGenre === "All" ? "All Games" : selectedGenre}
+                        </h2>
+                        {!isLoading && !error && filteredGames && (
+                            <span className="text-gray-600 text-sm">{filteredGames.length} titles</span>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => router.push(`/items?genre=${encodeURIComponent(selectedGenre)}`)}
+                        className="text-red-400 hover:text-red-300 text-sm font-medium transition flex items-center gap-1 group"
                     >
-                      {genre}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-between">
-            {selectedGenre && <p className="text-white pt-6 md:text-5xl text-3xl pb-10">{selectedGenre}</p>}
-            <button 
-              className="pr-10 cursor-pointer" 
-              onClick={() => router.push(`/items?genre=${encodeURIComponent(selectedGenre)}`)}  
-            >
-              <span className="text-blue-400">
-                View More&gt;&gt;&gt;
-              </span>
-            </button>
-          </div>
-          <div className="grid md:grid-cols-5 gap-y-8 grid-cols-3 text-white pb-40">
-            {filteredGames && filteredGames.slice(0,18).map((games)=> (
-              <ListingItems games={games} key={games.id}/>
-            ))}
-          </div>
+                        View All
+                        <span className="transition-transform group-hover:translate-x-0.5">›</span>
+                    </button>
+                </div>
+
+                {/* Game grid */}
+                {isLoading ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-16">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div key={i} className="bg-[#1a1a1a] rounded-xl overflow-hidden animate-pulse">
+                                <div className="w-full h-36 md:h-44 bg-gray-800" />
+                                <div className="p-3 space-y-2">
+                                    <div className="h-3 bg-gray-700 rounded w-3/4" />
+                                    <div className="h-2 bg-gray-800 rounded w-1/2" />
+                                    <div className="h-5 bg-gray-700 rounded w-1/3 mt-2" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div role="alert" className="text-center py-20">
+                        <p className="text-gray-400 mb-4">{error}</p>
+                        <button onClick={() => fetchGames({ force: true })} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-semibold transition">
+                            Try again
+                        </button>
+                    </div>
+                ) : filteredGames && filteredGames.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-16">
+                        {filteredGames.slice(0, 18).map(game => (
+                            <ListingItems games={game} key={game.id} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-24 text-gray-600">
+                        <p className="text-4xl mb-3">🎮</p>
+                        <p className="text-lg font-medium text-gray-400">No games found</p>
+                        <p className="text-sm mt-1">{allGames.length ? "Try a different genre or search term" : "The catalog is empty right now. Please check back later."}</p>
+                    </div>
+                )}
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    );
 }

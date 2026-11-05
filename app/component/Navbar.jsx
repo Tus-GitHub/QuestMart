@@ -5,7 +5,7 @@ import Signup from "./Signup";
 import Signin from "./Signin";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useDispatch, useSelector } from "react-redux";
-import { signOutUserFailure, signOutUserStart, signOutUserSuccess } from "@/redux/user/userSlice";
+import { checkSession, signOutUserFailure, signOutUserStart, signOutUserSuccess } from "@/redux/user/userSlice";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
@@ -13,24 +13,14 @@ export default function Navbar() {
   const [authMode, setAuthMode] = useState("signin");
   const [isClicked, setIsClicked] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [dropDownOpen, setDropDownOpen] = useState(false);
 
-  const {currentUser} = useSelector(state => state.user);
+  const { currentUser, loading, error, sessionChecked, sessionChecking, sessionError } = useSelector(state => state.user);
   const dropDownRef = useRef(null);
   const dispatch = useDispatch();
 
   const router = useRouter();
   
-  const handleScroll = () => {
-    if (window.scrollY > lastScrollY) {
-      setIsVisible(false);
-    } else {
-      setIsVisible(true);
-    }
-    setLastScrollY(window.scrollY);
-  };
-
   useEffect(()=>{
     function handleClickOutside(e){
       if(dropDownRef.current && !dropDownRef.current.contains(e.target)){
@@ -44,24 +34,31 @@ export default function Navbar() {
   },[]);
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      setIsVisible(window.scrollY <= lastScrollY);
+      lastScrollY = window.scrollY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [lastScrollY]);
+  }, []);
 
   const handleSignOut = async ()=>{
+      if (loading) return;
       try{
         dispatch(signOutUserStart());
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`);
+        const res = await fetch("/api/auth/signout", { method: "POST" });
         const data = await res.json();
-        console.log(data.message)
-        if(data.success === false){
-          dispatch(signOutUserFailure(data.message))
+        if (!res.ok || !data.success) {
+          dispatch(signOutUserFailure(data.message || "Unable to sign out. Please try again."));
+          return;
         }
-        dispatch(signOutUserSuccess(data.user));
+        dispatch(signOutUserSuccess());
+        setDropDownOpen(false);
       }catch(error){
-        dispatch(signOutUserFailure(error.message));
+        dispatch(signOutUserFailure("Unable to sign out. Check your connection and try again."));
       } 
   }
 
@@ -95,22 +92,36 @@ export default function Navbar() {
         <button className="hover:text-red-700 md:hidden visible">X-Box</button>
         <button className="hover:text-red-700">Blogs</button>
       </div>
-      {currentUser ? (
+      {sessionError ? (
+        <button
+          onClick={() => dispatch(checkSession())}
+          className="text-xs text-red-300 mr-4 rounded-lg border border-red-900 px-3 py-2"
+          title={sessionError}
+        >
+          Retry session
+        </button>
+      ) : !sessionChecked || sessionChecking ? (
+        <span role="status" className="mr-4 text-xs text-gray-400">Checking session…</span>
+      ) : currentUser ? (
         <div className="relative" ref={dropDownRef}>
-          <div
+          <button
             onClick={()=> setDropDownOpen(!dropDownOpen)}
+            aria-label="Account menu"
+            aria-expanded={dropDownOpen}
             className="rounded-full w-9 h-9 transition-all duration-300 hover:shadow-[0_0_15px_6px_#b91c1c] cursor-pointer mr-6"
           >
             <img 
               src={currentUser.avatar}
+              alt="Your profile"
               className="w-9 h-9 rounded-full object-cover mr-8"
             />
-          </div>
+          </button>
           {dropDownOpen && (
-            <div className="absolute right-2 mt-2 w-28 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
+            <div className="absolute right-2 mt-2 w-44 bg-white flex items-center justify-center text-red-700 border-red-500 shadow-lg rounded-3xl">
               <ul className="py-2 ">
                 <li className="px-4 py-2 md:border-0 border-2 border-red-500 hover:bg-red-400 hover:text-white hover:cursor rounded-3xl"><button onClick={()=> router.push("/profile")}>Profile</button></li>
-                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl"><button onClick={handleSignOut}>Sign Out</button></li>
+                <li className="px-4 py-2 mt-1 md:mt-0 md:border-0 border-2 border-red-500 hover:bg-red-500 hover:text-white hover:cursor rounded-3xl"><button disabled={loading} onClick={handleSignOut}>{loading ? "Signing out…" : "Sign Out"}</button></li>
+                {error && <li role="alert" className="px-4 py-2 text-xs text-red-700">{error}</li>}
               </ul>
             </div>
           )}

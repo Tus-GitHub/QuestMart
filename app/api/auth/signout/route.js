@@ -1,16 +1,13 @@
-import { cookies } from "next/headers";
+import { sessionCookie } from "@/lib/auth.mjs";
+import { assertSameOrigin, errorResponse, jsonResponse } from "@/lib/http.mjs";
 
-
-export async function GET(){
-    try{
-        const cookieStore = await cookies();
-        cookieStore.set('accessToken', '',{
-            maxAge:0,
-            path:'/',
-            httpOnly:true,
-        });
-        return Response.json({success:true, message:"Signed-Out Successfully"}, {status:200});
-    }catch(error){
-        return Response.json({success:false, message:"Server error", error:error.message}, {status:500});
-    }
+export async function POST(request) {
+  try {
+    assertSameOrigin(request);
+    return jsonResponse({ success: true, message: "Signed out successfully." }, 200, {
+      "Set-Cookie": sessionCookie("", 0),
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

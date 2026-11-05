@@ -4,8 +4,8 @@ import "./globals.css";
 import ClientInitializer from "./ClientInitializer";
 
 export const metadata = {
-  title: "QuickMart",
-  description: "Sell And Buy Video Games",
+  title: "QuestMart",
+  description: "Discover, buy and sell pre-owned video games.",
 };
 
 export default function RootLayout({ children }) {

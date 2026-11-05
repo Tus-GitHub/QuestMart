@@ -1,64 +1,26 @@
-import connectDB from "@/lib/mdConnection";
-import User from "@/app/models/User";
-import bcryptjs from 'bcryptjs';
-import jwt from "jsonwebtoken";
+import { query } from "@/lib/db.mjs";
+import bcrypt from "bcryptjs";
+import { createSessionToken, publicUser, sessionCookie } from "@/lib/auth.mjs";
+import { ApiError, assertSameOrigin, errorResponse, jsonResponse, readJson } from "@/lib/http.mjs";
+import { validateSignin } from "@/lib/validation.mjs";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// Equal-cost password check for missing users; this is a dummy hash, not a credential.
+const DUMMY_HASH = "$2b$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
-export async function POST(req){
-    await connectDB();
-    try{
-        const body = await req.json();
-        const {identifier, password} = body;
-        if(!identifier || !password){
-            return Response.json(
-                {success:false, message:"Fill every detail"},
-                {status:400},
-            );
-        }
-        const isEmail = /\S+@\S+\.\S+/.test(identifier);
-        const query = isEmail ? {email:identifier} : {username:identifier};
-
-        const existingUser = await User.findOne(query);
-
-        if(!existingUser){
-            return Response.json(
-                {success:false, message:"User not found"}
-            )
-        }
-        const validPassword = bcryptjs.compareSync(password, existingUser.password);
-        if(!validPassword){
-            return Response.json(
-                {success:false, message:"Wrong Password"},
-                {status:401}
-            )
-        }
-
-        const token = jwt.sign(
-            {id:existingUser._id},
-            JWT_SECRET,
-            {expiresIn: '7d'}
-        );
-
-        const {password: _, ...userData} = existingUser._doc;
-
-        const response = new Response(
-            JSON.stringify({success:true, message:"Login successfull", user:userData}),
-            {
-                status:200,
-                headers:{
-                    "Content-Type" : "application/json",
-                    "Set-Cookie": `accessToken=${token}; HttpOnly; Secure; Max-Age=604800; Path=/`
-                }
-            }
-        );
-
-        return response;
-
-    }catch(error){
-        return Response.json(
-            {success:false, message:"Server error", error:error.message},
-            {status:500},
-        )
-    }
+export async function POST(request) {
+  try {
+    assertSameOrigin(request);
+    const { identifier, password } = validateSignin(await readJson(request));
+    const statement = identifier.includes("@")
+      ? "SELECT id, username, email, avatar, created_at, password_hash FROM users WHERE email = $1"
+      : "SELECT id, username, email, avatar, created_at, password_hash FROM users WHERE username = $1";
+    const { rows: [user] } = await query(statement, [identifier.toLowerCase()]);
+    const valid = await bcrypt.compare(password, user?.password_hash || DUMMY_HASH);
+    if (!user || !valid) throw new ApiError(401, "Incorrect username/email or password.");
+    return jsonResponse({ success: true, message: "Signed in successfully.", user: publicUser(user) }, 200, {
+      "Set-Cookie": sessionCookie(createSessionToken(user.id)),
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

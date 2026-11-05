@@ -1,30 +1,18 @@
-import connectDB from "@/lib/mdConnection";
-import User from "@/app/models/User";
-import bcryptjs from 'bcryptjs';
+import { query } from "@/lib/db.mjs";
+import bcrypt from "bcryptjs";
+import { ApiError, assertSameOrigin, errorResponse, jsonResponse, readJson } from "@/lib/http.mjs";
+import { validateSignup } from "@/lib/validation.mjs";
 
-export async function POST(req){
-    await connectDB();
-    try{
-        const {username,email, password} = await req.json();
-        if(!username || !email || !password){
-            return Response.json({message:"Fill every detail"}, {status:400});
-        }
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return Response.json(
-                {success : false, message: "User already exists with this email or username" },
-                { status: 400 },
-            );
-        }
-        const hashedPassword = bcryptjs.hashSync(password, 10);
-        const newUser = new User({username, email, password:hashedPassword});
-        try{
-            await newUser.save();
-            return Response.json({message:"User signuped succesfully"}, {status:201});
-        } catch(error){
-            return Response.json({success : false, message:"Error while saving user", error:error.message}, {status:500});
-        }
-    } catch(error){
-        return Response.json({success : false, message:"Server error", error:error.message}, {status:500});
-    }
+export async function POST(request) {
+  try {
+    assertSameOrigin(request);
+    const { username, email, password } = validateSignup(await readJson(request));
+    await query("INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)", [
+      username, email, await bcrypt.hash(password, 12),
+    ]);
+    return jsonResponse({ success: true, message: "Account created. You can now sign in." }, 201);
+  } catch (error) {
+    if (error.code === "23505") return errorResponse(new ApiError(409, "An account with this email or username already exists."));
+    return errorResponse(error);
+  }
 }
