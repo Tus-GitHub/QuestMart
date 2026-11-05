@@ -44,7 +44,8 @@ export default function SiteHeader() {
         >
           {[
             ["/", "Discover"],
-            ["/marketplace", "Marketplace"],
+            ["/#discover", "Buy new"],
+            ["/marketplace", "Player market"],
             ["/sell", "Sell a game"],
             ["/orders", "My orders"],
           ].map(([href, label]) => (

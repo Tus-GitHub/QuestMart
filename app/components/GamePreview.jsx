@@ -37,12 +37,20 @@ export default function GamePreview({ game, onClose }) {
           ))}
         </div>
         <div className="preview-actions">
-          <Link
+          <a
             className="button primary"
+            href={game.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Buy new on Steam <ArrowUpRightIcon />
+          </a>
+          <Link
+            className="button secondary"
             href={`/marketplace?q=${encodeURIComponent(game.name)}`}
             onClick={onClose}
           >
-            Find a pre-owned copy
+            Find player listings
             <ArrowUpRightIcon />
           </Link>
           <a
@@ -55,8 +63,9 @@ export default function GamePreview({ game, onClose }) {
           </a>
         </div>
         <p className="small muted">
-          A game from our discovery library. Prices and availability depend on
-          seller listings.
+          {game.price ? `Steam reference price: ${game.price}. ` : ""}New
+          purchases are completed and fulfilled on Steam. Player listings are
+          separate offers on QuestMart.
         </p>
       </div>
     </Dialog>

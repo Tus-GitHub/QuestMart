@@ -1,10 +1,12 @@
 # QuestMart
 
-A live portfolio marketplace for buying and selling pre-owned physical games. Built with Next.js 15, React 19, Tailwind CSS, PostgreSQL and cookie-based JWT sessions.
+A game discovery storefront with official-store purchase links and a separate player marketplace for pre-owned physical games. Built with Next.js 15, React 19, Tailwind CSS, PostgreSQL and cookie-based JWT sessions.
 
 ## Current milestone
 
-The storefront now includes an animated responsive design, locally served game discovery, saved favorites and game previews. Authenticated sellers can upload photos, create/edit/remove listings and manage their inventory. Marketplace search, platform filters, price sorting, listing details and order views use PostgreSQL.
+The storefront includes a cinematic hero, selectable featured games, pointer-responsive cards, scroll reveals, responsive game previews and reduced-motion support. Its large Steam catalog supports search, genre filtering, 25-result pagination and INR reference prices. New-game purchases open Steam; QuestMart does not charge or fulfill those orders. Twelve locally served editorial picks remain as featured artwork and a clearly labeled outage fallback. The catalog uses a server-side adapter for Steam's public storefront results, which can change; errors never masquerade as an empty full catalog.
+
+Authenticated sellers can upload photos, create/edit/remove listings and manage their inventory. Marketplace search, platform filters, price sorting, listing details and order views use PostgreSQL. Direct new-game inventory and supplier automation are deferred; no reseller integration is connected.
 
 Payments are deliberately disabled while Razorpay test credentials are deferred. The checkout page explains this before taking delivery details or reserving inventory. No real or simulated payment can be confirmed through the public API.
 

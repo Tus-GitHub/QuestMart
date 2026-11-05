@@ -7,9 +7,9 @@ export default function SiteFooter() {
           quest<span>mart</span>
           <i>®</i>
         </Link>
-        <p>Good games deserve another player.</p>
+        <p>Discover your next world. Keep the game going.</p>
         <div>
-          <Link href="/marketplace">Find your next game ↗</Link>
+          <Link href="/#discover">Find your next game ↗</Link>
           <Link href="/sell">Pass on a favorite ↗</Link>
         </div>
       </div>
