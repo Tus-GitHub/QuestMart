@@ -72,6 +72,13 @@ test("initial-password users can only access the explicitly permitted security f
     true,
   );
 });
+
+test("unverified accounts cannot use a previously issued session", async () => {
+  await assert.rejects(
+    requireUser(request(), database({ email_verification_required: true })),
+    (error) => error.status === 403,
+  );
+});
 test("session versions and password inputs are bounded", () => {
   assert.equal(verifySessionClaims(createSessionToken(id, 3)).sv, 3);
   assert.throws(() => validateNewPassword("short"));

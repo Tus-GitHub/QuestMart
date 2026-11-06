@@ -15,6 +15,8 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import Dialog from "./Dialog";
+import "../account-email.css";
+import Link from "next/link";
 import DiscoveryMotion from "./DiscoveryMotion";
 
 export default function AuthModal({ initialMode, onClose, motionDisabled }) {
@@ -47,14 +49,14 @@ export default function AuthModal({ initialMode, onClose, motionDisabled }) {
       if (signup) {
         if (values.password !== values.confirmPassword)
           throw new Error("Your passwords don’t match.");
-        await api("/api/auth/signup", {
+        const signupResult = await api("/api/auth/signup", {
           method: "POST",
           body: JSON.stringify(values),
         });
         setIdentifier(values.username);
         setMode("signin");
         setShowPassword(false);
-        setNotice("Account created. Sign in to start your next quest.");
+        setNotice(signupResult.message);
         heading.current?.focus();
       } else {
         dispatch(signInStart());
@@ -292,6 +294,16 @@ export default function AuthModal({ initialMode, onClose, motionDisabled }) {
               )}
             </button>
           </form>
+          {!signup ? (
+            <div className="account-email-links">
+              <Link href="/forgot-password" onClick={onClose}>
+                Forgot password?
+              </Link>
+              <Link href="/resend-verification" onClick={onClose}>
+                Resend verification email
+              </Link>
+            </div>
+          ) : null}
           <p className="auth-switch">
             {signup ? "Already part of the crew?" : "New to QuestMart?"}{" "}
             <button

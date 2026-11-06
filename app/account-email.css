@@ -1,0 +1,114 @@
+.account-email-page {
+  position: relative;
+  min-height: 80svh;
+  display: grid;
+  place-items: center;
+  padding-block: 70px;
+  isolation: isolate;
+}
+.account-email-panel {
+  width: min(100%, 510px);
+  background: linear-gradient(130deg, #192738ed, #0c1423f5);
+  border: 1px solid #8398ae44;
+  border-radius: 18px;
+  padding: 38px;
+  box-shadow: 0 35px 100px #0004;
+}
+.account-email-panel h1 {
+  font-size: clamp(36px, 5vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  margin: 24px 0 18px;
+}
+.account-email-panel > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #aebfce;
+}
+.account-email-panel fieldset {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 0;
+}
+.account-email-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+}
+.account-email-panel input {
+  width: 100%;
+  min-height: 48px;
+  background: #0b1524;
+  border: 1px solid #8095ae55;
+  border-radius: 7px;
+  padding: 12px;
+  color: #fff;
+}
+.account-email-panel small {
+  color: #a6b5c3;
+  font-size: 10px;
+}
+.account-email-panel .notice {
+  margin-block: 20px;
+}
+.account-email-panel > .button {
+  margin-top: 22px;
+}
+.account-email-links {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 22px;
+  font-size: 11px;
+  color: #c1ef76;
+}
+.account-email-links a,
+.account-email-links button {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.account-email-art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.account-email-art i {
+  position: absolute;
+  inset: 8% 24%;
+  border: 1px solid #c1ef7633;
+  border-radius: 50%;
+  transform: rotateX(24deg) rotateY(-35deg);
+}
+.account-email-art i:nth-child(2) {
+  inset: 20% 12%;
+  border-color: #9f88e433;
+  transform: rotateX(-45deg) rotateY(10deg);
+}
+.account-email-art span {
+  position: absolute;
+  top: 40%;
+  left: 8%;
+  font-size: 120px;
+  font-weight: 900;
+  color: #c1ef7610;
+}
+@media (max-width: 600px) {
+  .account-email-page {
+    padding-block: 35px;
+    min-height: 75svh;
+  }
+  .account-email-panel {
+    padding: 28px 22px;
+  }
+  .account-email-art i {
+    inset: 20% -30%;
+  }
+}

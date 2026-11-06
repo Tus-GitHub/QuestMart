@@ -21,8 +21,8 @@ export async function POST(request) {
     const { identifier, password } = validateSignin(await readJson(request));
     await rateLimit(request, "signin", 30);
     const statement = identifier.includes("@")
-      ? "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required FROM users WHERE email = $1"
-      : "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required FROM users WHERE username = $1";
+      ? "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required, email_verification_required FROM users WHERE email = $1"
+      : "SELECT id, username, email, avatar, created_at, password_hash, role, account_status, session_version, password_change_required, email_verification_required FROM users WHERE username = $1";
     const {
       rows: [user],
     } = await query(statement, [identifier.toLowerCase()]);
@@ -36,6 +36,11 @@ export async function POST(request) {
       throw new ApiError(
         403,
         "This account is suspended. Contact the site administrator.",
+      );
+    if (user.email_verification_required)
+      throw new ApiError(
+        403,
+        "Verify your email before signing in. Use Resend verification email if you need a new link.",
       );
     return jsonResponse(
       {

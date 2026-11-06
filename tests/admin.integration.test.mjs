@@ -44,7 +44,7 @@ test(
       const hash = await bcrypt.hash(password, 12);
       const users = (
         await client.query(
-          `INSERT INTO users(username,email,password_hash,role) VALUES('operator','operator@example.test',$1,'admin'),('seller','seller@example.test',$1,'user'),('buyer','buyer@example.test',$1,'user') RETURNING id,username`,
+          `INSERT INTO users(username,email,password_hash,role,email_verification_required) VALUES('operator','operator@example.test',$1,'admin',false),('seller','seller@example.test',$1,'user',false),('buyer','buyer@example.test',$1,'user',false) RETURNING id,username`,
           [hash],
         )
       ).rows;
