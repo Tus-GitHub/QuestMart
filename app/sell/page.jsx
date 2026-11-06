@@ -1,19 +1,25 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import {
-  ArrowUpTrayIcon,
-  XMarkIcon,
   PlusIcon,
   ShoppingBagIcon,
   ArrowUpRightIcon,
+  CubeIcon,
+  CheckCircleIcon,
+  PencilSquareIcon,
+  PhotoIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
-import { api, money, readable } from "@/lib/client-api.mjs";
-import { PLATFORMS, CONDITIONS } from "@/lib/listing-validation.mjs";
+import { api } from "@/lib/client-api.mjs";
 import { useUI } from "../components/UIProvider";
-import Media from "../components/Media";
+import SellerEditor from "../components/SellerEditor";
+import SellerInventory from "../components/SellerInventory";
 import Dialog from "../components/Dialog";
+import ExperienceSurface, {
+  ExperienceHeader,
+} from "../components/ExperienceSurface";
 const empty = {
   title: "",
   platform: "PS5",
@@ -23,10 +29,16 @@ const empty = {
   description: "",
   photos: [],
 };
+
 export default function Sell() {
+  const userId = useSelector((state) => state.user.currentUser?._id);
+  return <SellerStudio key={userId || "guest"} />;
+}
+
+function SellerStudio() {
   const user = useSelector((s) => s.user.currentUser),
     checked = useSelector((s) => s.user.sessionChecked),
-    { openAuth, notify } = useUI();
+    { openAuth, notify, motionDisabled } = useUI();
   const [form, setForm] = useState(empty),
     [items, setItems] = useState([]),
     [editing, setEditing] = useState(null),
@@ -34,22 +46,48 @@ export default function Sell() {
     [uploading, setUploading] = useState(false),
     [error, setError] = useState(""),
     [loadError, setLoadError] = useState(""),
-    [removing, setRemoving] = useState(null);
-  const refresh = useCallback(async () => {
-    if (!user) return;
-    try {
-      const d = await api("/api/listings?mine=true");
-      setItems(d.listings);
-      setLoadError("");
-    } catch (e) {
-      setLoadError(e.message);
-    }
-  }, [user]);
+    [removing, setRemoving] = useState(null),
+    [removeError, setRemoveError] = useState(""),
+    [loading, setLoading] = useState(true),
+    [page, setPage] = useState(1),
+    [more, setMore] = useState(false);
+  const titleInput = useRef(null);
+  const refresh = useCallback(
+    async (signal) => {
+      if (!user) return;
+      setLoading(true);
+      try {
+        const d = await api("/api/listings?mine=true&page=" + page, { signal });
+        setItems(d.listings);
+        setMore(d.hasMore);
+        setLoadError("");
+      } catch (e) {
+        if (!signal?.aborted) setLoadError(e.message);
+      } finally {
+        if (!signal?.aborted) setLoading(false);
+      }
+    },
+    [user, page],
+  );
   useEffect(() => {
-    refresh();
+    const c = new AbortController();
+    refresh(c.signal);
+    return () => c.abort();
   }, [refresh]);
   function change(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+  function focusEditor() {
+    titleInput.current?.scrollIntoView({
+      behavior: motionDisabled ? "instant" : "smooth",
+      block: "center",
+    });
+    titleInput.current?.focus({ preventScroll: true });
+  }
+  function resetEditor() {
+    setForm(empty);
+    setEditing(null);
+    setError("");
   }
   async function upload(e) {
     const file = e.target.files?.[0];
@@ -90,9 +128,10 @@ export default function Sell() {
         }),
       });
       notify(editing ? "Listing updated." : "Your game is on the marketplace.");
-      setForm(empty);
-      setEditing(null);
-      await refresh();
+      const wasEditing = Boolean(editing);
+      resetEditor();
+      if (!wasEditing && page !== 1) setPage(1);
+      else await refresh();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -107,279 +146,207 @@ export default function Sell() {
       photos: item.photos,
     });
     setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    focusEditor();
   }
   async function remove() {
+    if (busy) return;
     setBusy(true);
+    setRemoveError("");
     try {
       await api("/api/listings/" + removing.id, { method: "DELETE" });
       notify("Listing removed from the marketplace.");
+      if (editing === removing.id) resetEditor();
       setRemoving(null);
-      await refresh();
+      if (items.length === 1 && page > 1) setPage((p) => p - 1);
+      else await refresh();
     } catch (err) {
-      setError(err.message);
-      setRemoving(null);
+      setRemoveError(err.message);
     } finally {
       setBusy(false);
     }
   }
+  const stats = [
+    { label: "Listed games", value: items.length, Icon: CubeIcon },
+    {
+      label: "Available",
+      value: items.filter((item) => item.status === "available").length,
+      Icon: ShoppingBagIcon,
+    },
+    {
+      label: "Reserved",
+      value: items.filter((item) => item.status === "reserved").length,
+      Icon: ClockIcon,
+    },
+    {
+      label: "Sold",
+      value: items.filter((item) => item.status === "sold").length,
+      Icon: CheckCircleIcon,
+    },
+  ];
   return (
-    <div className="page-width">
-      <div className="page-heading">
-        <span className="eyebrow">GOOD GAMES DESERVE ANOTHER PLAYER</span>
-        <h1>
-          Make room for your next quest<span className="accent">.</span>
-        </h1>
-        <p>Your collection. Your prices. Your next adventure.</p>
-      </div>
-      {!user ? (
-        <div className="empty-state" style={{ marginBottom: 70 }}>
-          <ShoppingBagIcon />
-          <h3>
-            {checked ? "Your seller space awaits." : "Checking your session…"}
-          </h3>
-          <p>Sign in to publish listings and manage your collection.</p>
-          {checked ? (
-            <button className="button primary" onClick={() => openAuth()}>
-              Sign in to sell
-              <ArrowUpRightIcon />
-            </button>
-          ) : null}
-        </div>
-      ) : (
-        <div className="seller-layout">
-          <section className="panel">
-            <span className="eyebrow">SELLER STUDIO</span>
-            <h2 style={{ marginTop: 8 }}>
-              {editing
-                ? "Fine-tune your listing"
-                : "Give a game its next chapter"}
-            </h2>
-            <form className="form-stack" onSubmit={submit}>
-              <div className="form-grid">
-                <label className="span-two">
-                  Game title
-                  <input
-                    name="title"
-                    value={form.title}
-                    onChange={change}
-                    required
-                    minLength={2}
-                    maxLength={120}
-                    placeholder="e.g. Elden Ring"
-                  />
-                </label>
-                <label>
-                  Platform
-                  <select
-                    name="platform"
-                    value={form.platform}
-                    onChange={change}
-                  >
-                    {PLATFORMS.map((v) => (
-                      <option key={v}>{v}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Format
-                  <select name="format" value={form.format} onChange={change}>
-                    <option value="disc">Physical disc</option>
-                    <option value="cartridge">Cartridge</option>
-                  </select>
-                </label>
-                <label>
-                  Condition
-                  <select
-                    name="condition"
-                    value={form.condition}
-                    onChange={change}
-                  >
-                    {CONDITIONS.map((v) => (
-                      <option key={v} value={v}>
-                        {readable(v)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Your price (₹)
-                  <input
-                    name="price"
-                    value={form.price}
-                    onChange={change}
-                    required
-                    type="number"
-                    min="1"
-                    max="100000"
-                    step=".01"
-                    placeholder="1499"
-                  />
-                </label>
-                <label className="span-two">
-                  Tell players about your copy
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={change}
-                    required
-                    minLength={20}
-                    maxLength={3000}
-                    placeholder="Mention the condition, original case, and anything the next player should know."
-                  />
-                </label>
-              </div>
-              <div>
-                <label>
-                  Photos of your actual copy{" "}
-                  <span className="muted small">
-                    1–5 images. JPEG, PNG or WebP, up to 3 MB each.
-                  </span>
-                </label>
-                <div className="photo-thumbs">
-                  {form.photos.map((url, i) => (
-                    <div className="photo-thumb" key={url}>
-                      <Media
-                        src={url}
-                        alt={"Listing photo " + (i + 1)}
-                        sizes="80px"
-                      />
-                      <button
-                        type="button"
-                        aria-label={"Remove photo " + (i + 1)}
-                        onClick={() =>
-                          setForm((f) => ({
-                            ...f,
-                            photos: f.photos.filter((_, index) => index !== i),
-                          }))
-                        }
-                      >
-                        <XMarkIcon />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                {form.photos.length < 5 ? (
-                  <label className="upload-zone">
-                    <ArrowUpTrayIcon />
-                    {uploading ? "Optimizing your photo…" : "Choose a photo"}
-                    <span>Your first photo becomes the cover.</span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      aria-label="Upload listing photo"
-                      disabled={uploading}
-                      onChange={upload}
-                    />
-                  </label>
-                ) : null}
-              </div>
-              {error ? (
-                <p className="notice error" role="alert">
-                  {error}
-                </p>
-              ) : null}
+    <ExperienceSurface className="seller-experience">
+      <div className="page-width">
+        <ExperienceHeader
+          studio
+          eyebrow="YOUR SELLER STUDIO"
+          title="Played it?"
+          accent="Pass it on."
+          description={
+            user
+              ? "Welcome back, @" +
+                user.username +
+                ". Turn your finished adventures into someone’s next favorite."
+              : "Your games have more stories to tell. Build your collection, create a listing, and find their next player."
+          }
+        >
+          {user ? (
+            <>
               <button
-                className="button primary full"
-                disabled={busy || uploading || !form.photos.length}
+                className="button primary"
+                onClick={() => {
+                  resetEditor();
+                  focusEditor();
+                }}
+                disabled={busy || uploading}
               >
-                {busy
-                  ? "Saving…"
-                  : editing
-                    ? "Save changes"
-                    : "Publish listing"}
+                Create a listing
                 <PlusIcon />
               </button>
-              {editing ? (
-                <button
-                  type="button"
-                  className="text-link"
-                  onClick={() => {
-                    setEditing(null);
-                    setForm(empty);
-                    setError("");
-                  }}
-                >
-                  Cancel editing
-                </button>
-              ) : null}
-              <p className="small muted">
-                Be accurate about condition. Never include personal contact
-                details in public listings.
-              </p>
-            </form>
-          </section>
-          <section className="panel">
+              <a className="button glass" href="#seller-collection">
+                Your collection
+                <ArrowUpRightIcon />
+              </a>
+            </>
+          ) : (
+            <Link className="button glass" href="/marketplace">
+              Explore the marketplace
+              <ArrowUpRightIcon />
+            </Link>
+          )}
+        </ExperienceHeader>
+        {!user ? (
+          <section className="seller-access surface-empty">
+            <div className="empty-orbit">
+              <CubeIcon />
+            </div>
+            <span className="eyebrow">READY, PLAYER ONE?</span>
             <h2>
-              Your collection <span className="muted">/ {items.length}</span>
+              {checked ? "Your studio is waiting." : "Checking your session…"}
             </h2>
-            {loadError ? (
-              <div className="notice error">
-                {loadError}
-                <button onClick={refresh}>Retry</button>
-              </div>
+            <p>
+              Sign in to upload photos, publish your games, and manage your
+              listings in one place.
+            </p>
+            {checked ? (
+              <button className="button primary" onClick={() => openAuth()}>
+                Sign in to sell
+                <ArrowUpRightIcon />
+              </button>
             ) : null}
-            {!items.length ? (
-              <div
-                className="empty-state"
-                style={{ border: 0, padding: "45px 0" }}
-              >
-                <ShoppingBagIcon />
-                <h3>A fresh start.</h3>
-                <p>Your published games will appear here.</p>
-              </div>
-            ) : (
-              items.map((item) => (
-                <article className="listing-row" key={item.id}>
-                  <Link
-                    href={"/listings/" + item.id}
-                    className="listing-row-image"
-                  >
-                    <Media src={item.photos[0]} alt={item.title} sizes="95px" />
-                  </Link>
-                  <div className="listing-row-content">
-                    <h3>{item.title}</h3>
-                    <p>
-                      {item.platform} · {money(item.price_paise)}
-                    </p>
-                    <span className="status-pill">{item.status}</span>
-                    {item.moderation_status === "hidden" ? (
-                      <p className="small muted">
-                        Hidden by moderation: {item.moderation_reason}
-                      </p>
-                    ) : null}
-                    {item.status === "available" ? (
-                      <div className="listing-row-actions">
-                        <button onClick={() => edit(item)}>Edit listing</button>
-                        <button onClick={() => setRemoving(item)}>
-                          Remove
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </article>
-              ))
-            )}
+            <div className="studio-steps">
+              <span>
+                <PhotoIcon /> Show your copy
+              </span>
+              <span>
+                <PencilSquareIcon /> Tell its story
+              </span>
+              <span>
+                <ShoppingBagIcon /> Find its next player
+              </span>
+            </div>
           </section>
-        </div>
-      )}
+        ) : (
+          <>
+            <div className="studio-overview-heading">
+              <span className="eyebrow">INVENTORY SNAPSHOT</span>
+              <span>
+                {page > 1 || more
+                  ? "Current page · Page " + page
+                  : "Your collection at a glance"}
+              </span>
+            </div>
+            <div className="studio-stats" aria-label="Inventory summary">
+              {stats.map(({ label, value, Icon }) => (
+                <div className="studio-stat" key={label}>
+                  <span>
+                    <Icon />
+                    {label}
+                  </span>
+                  <strong>{loading || loadError ? "—" : value}</strong>
+                  <div className="stat-track" aria-hidden="true">
+                    <i
+                      style={{
+                        width: items.length
+                          ? Math.max(6, (value / items.length) * 100) + "%"
+                          : "0%",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <SellerEditor
+              form={form}
+              setForm={setForm}
+              editing={editing}
+              busy={busy}
+              uploading={uploading}
+              error={error}
+              titleInput={titleInput}
+              change={change}
+              upload={upload}
+              submit={submit}
+              resetEditor={resetEditor}
+              username={user.username}
+            />
+            <SellerInventory
+              items={items}
+              loading={loading}
+              error={loadError}
+              onRetry={refresh}
+              page={page}
+              onPageChange={setPage}
+              more={more}
+              disabled={busy || uploading}
+              onEdit={edit}
+              onRemove={(item) => {
+                setRemoving(item);
+                setRemoveError("");
+              }}
+            />
+          </>
+        )}
+      </div>
       {removing ? (
-        <Dialog label="Remove listing" onClose={() => setRemoving(null)}>
+        <Dialog
+          label="Remove listing"
+          className="studio-remove-dialog"
+          onClose={() => {
+            if (!busy) setRemoving(null);
+          }}
+        >
           <div className="dialog-body">
+            <span className="eyebrow">MANAGE YOUR COLLECTION</span>
             <h2>Remove this listing?</h2>
             <p className="muted">
               {removing.title} will no longer appear in the marketplace.
             </p>
+            {removeError ? (
+              <p className="notice error" role="alert">
+                {removeError}
+              </p>
+            ) : null}
             <div className="preview-actions">
               <button
                 className="button primary"
                 disabled={busy}
                 onClick={remove}
               >
-                Remove listing
+                {busy ? "Removing…" : "Remove listing"}
               </button>
               <button
                 className="button secondary"
+                disabled={busy}
                 onClick={() => setRemoving(null)}
               >
                 Keep it listed
@@ -388,6 +355,6 @@ export default function Sell() {
           </div>
         </Dialog>
       ) : null}
-    </div>
+    </ExperienceSurface>
   );
 }

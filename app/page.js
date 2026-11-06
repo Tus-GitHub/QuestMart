@@ -24,13 +24,10 @@ import HeroScene from "./components/HeroScene";
 
 export default function Discover() {
   const [slide, setSlide] = useState(0),
-    [paused, setPaused] = useState(false),
     [selected, setSelected] = useState(null),
     [genre, setGenre] = useState("All games"),
     [search, setSearch] = useState(""),
-    [onlySaved, setOnlySaved] = useState(false),
-    [reducedMotion, setReducedMotion] = useState(false),
-    [motionReady, setMotionReady] = useState(false);
+    [onlySaved, setOnlySaved] = useState(false);
   const [library, setLibrary] = useState({
       results: catalog,
       count: null,
@@ -40,7 +37,14 @@ export default function Discover() {
     [loading, setLoading] = useState(true),
     [catalogError, setCatalogError] = useState(""),
     [retry, setRetry] = useState(0);
-  const { saved, toggleSaved } = useUI();
+  const {
+    saved,
+    toggleSaved,
+    motionDisabled,
+    motionReady,
+    reducedMotion,
+    toggleMotion,
+  } = useUI();
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -74,30 +78,11 @@ export default function Discover() {
     };
   }, [page, search, genre, retry]);
   useEffect(() => {
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReducedMotion(motion.matches);
-    sync();
-    try {
-      setPaused(localStorage.getItem("questmart:motion-paused:v1") === "true");
-    } catch {}
-    setMotionReady(true);
-    motion.addEventListener("change", sync);
-    return () => motion.removeEventListener("change", sync);
-  }, []);
-  useEffect(() => {
-    if (!motionReady || paused || reducedMotion || selected) return;
+    if (motionDisabled || selected) return;
     const timer = setInterval(() => setSlide((value) => (value + 1) % 3), 7000);
     return () => clearInterval(timer);
-  }, [motionReady, paused, reducedMotion, slide, selected]);
-  function toggleMotion() {
-    const next = !paused;
-    setPaused(next);
-    try {
-      localStorage.setItem("questmart:motion-paused:v1", String(next));
-    } catch {}
-  }
+  }, [motionDisabled, slide, selected]);
   const hero = catalog[slide];
-  const motionDisabled = !motionReady || paused || reducedMotion;
   const games = library.results.filter(
     (game) => !onlySaved || saved.includes(game.id),
   );

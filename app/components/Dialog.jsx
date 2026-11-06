@@ -2,7 +2,14 @@
 import { useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function Dialog({ children, onClose, label, wide = false }) {
+export default function Dialog({
+  children,
+  onClose,
+  label,
+  wide = false,
+  className = "",
+  footer,
+}) {
   const ref = useRef(null);
   useEffect(() => {
     const dialog = ref.current;
@@ -19,7 +26,7 @@ export default function Dialog({ children, onClose, label, wide = false }) {
   return (
     <dialog
       ref={ref}
-      className={`dialog ${wide ? "dialog-wide" : ""}`}
+      className={`dialog ${wide ? "dialog-wide" : ""} ${className}`}
       aria-label={label}
       onCancel={(event) => {
         event.preventDefault();
@@ -46,6 +53,7 @@ export default function Dialog({ children, onClose, label, wide = false }) {
         <XMarkIcon />
       </button>
       <div className="dialog-scroll">{children}</div>
+      {footer ? <div className="dialog-footer">{footer}</div> : null}
     </dialog>
   );
 }

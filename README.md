@@ -10,6 +10,8 @@ The optional 3D module loads separately after the hero becomes visible. Its rend
 
 Authenticated sellers can upload photos, create/edit/remove listings and manage their inventory. Marketplace search, platform filters, price sorting, listing details and order views use PostgreSQL. Direct new-game inventory and supplier automation are deferred; no reseller integration is connected.
 
+The player exchange and seller studio share the storefront’s spatial styling, pointer highlights and motion preference. The marketplace includes quick-look dialogs and platform shortcuts. The studio includes a live listing preview, completeness checklist, status filters and collection pagination; inventory counts describe the current page. Game previews keep the close control and purchase actions outside their scrollable content. Phone and tablet layouts retain touch targets, readable forms, keyboard access and reduced-motion support.
+
 Payments are deliberately disabled while Razorpay test credentials are deferred. The checkout page explains this before taking delivery details or reserving inventory. No real or simulated payment can be confirmed through the public API.
 
 The former MongoDB integration has been replaced. This creates a fresh database; old MongoDB users/data have not been imported.

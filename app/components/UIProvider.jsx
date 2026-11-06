@@ -17,6 +17,42 @@ export default function UIProvider({ children }) {
   const [auth, setAuth] = useState(null);
   const [toast, setToast] = useState("");
   const [saved, setSaved] = useState([]);
+  const [motionPaused, setMotionPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [motionReady, setMotionReady] = useState(false);
+  const motionDisabled = !motionReady || motionPaused || reducedMotion;
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setReducedMotion(preference.matches);
+    const syncStorage = (event) => {
+      if (event.key === "questmart:motion-paused:v1")
+        setMotionPaused(event.newValue === "true");
+    };
+    syncPreference();
+    try {
+      setMotionPaused(
+        localStorage.getItem("questmart:motion-paused:v1") === "true",
+      );
+    } catch {}
+    setMotionReady(true);
+    preference.addEventListener("change", syncPreference);
+    window.addEventListener("storage", syncStorage);
+    return () => {
+      preference.removeEventListener("change", syncPreference);
+      window.removeEventListener("storage", syncStorage);
+    };
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.motion = motionDisabled ? "off" : "on";
+  }, [motionDisabled]);
+  const toggleMotion = useCallback(() => {
+    setMotionPaused((previous) => {
+      try {
+        localStorage.setItem("questmart:motion-paused:v1", String(!previous));
+      } catch {}
+      return !previous;
+    });
+  }, []);
   useEffect(() => {
     try {
       const ids = JSON.parse(
@@ -49,6 +85,10 @@ export default function UIProvider({ children }) {
         notify: setToast,
         saved,
         toggleSaved,
+        motionDisabled,
+        motionReady,
+        reducedMotion,
+        toggleMotion,
       }}
     >
       {children}

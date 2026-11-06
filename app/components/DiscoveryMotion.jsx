@@ -3,7 +3,11 @@ import { useEffect, useRef } from "react";
 
 // Event delegation keeps motion working when catalog pages change. Only the
 // active card gets compositor promotion; pointer updates never rerender React.
-export default function DiscoveryMotion({ children, paused = false }) {
+export default function DiscoveryMotion({
+  children,
+  paused = false,
+  className = "",
+}) {
   const root = useRef(null);
   useEffect(() => {
     const element = root.current;
@@ -136,7 +140,7 @@ export default function DiscoveryMotion({ children, paused = false }) {
   return (
     <div
       ref={root}
-      className={`discovery-experience${paused ? " motion-paused" : ""}`}
+      className={`discovery-experience ${className}${paused ? " motion-paused" : ""}`}
     >
       {children}
     </div>
