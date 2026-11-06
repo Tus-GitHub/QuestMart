@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { applyMigrations } from "../scripts/db-migrate.mjs";
+import { createMarketplace } from "../lib/marketplace.mjs";
 
 // Explicit opt-in only. Every table, function, and fixture is created in a unique
 // schema inside one transaction, which is rolled back even on assertion failure.
@@ -157,6 +158,67 @@ test(
             listing.id,
           ]);
           assert.equal(replacement.rows[0].buyer_id, ids.other);
+        },
+      );
+      await t.test(
+        "profile totals include all pages and stay scoped to the signed-in user",
+        async () => {
+          await client.query("SAVEPOINT profile_totals");
+          try {
+            const { rows: people } = await client.query(
+              `INSERT INTO users(username,email,password_hash) VALUES
+             ('stats_seller','stats_seller@example.test',$1),
+             ('stats_buyer','stats_buyer@example.test',$1) RETURNING id,username`,
+              [passwordHash],
+            );
+            const sellerId = people.find(
+              (person) => person.username === "stats_seller",
+            ).id;
+            const buyerId = people.find(
+              (person) => person.username === "stats_buyer",
+            ).id;
+            await client.query(
+              `INSERT INTO listings(seller_id,title,platform,format,condition,price_paise,description,photos,status)
+            SELECT $1,'A game copy','PS5','disc','good',120000,'A game in its original case.',ARRAY['https://example.com/game.jpg'],
+            CASE WHEN n=106 THEN 'removed' ELSE 'sold' END FROM generate_series(1,106) n`,
+              [sellerId],
+            );
+            await client.query(
+              `INSERT INTO orders(buyer_id,seller_id,listing_id,snapshot_title,snapshot_platform,snapshot_format,snapshot_condition,snapshot_price_paise,snapshot_photo,status,payment_status)
+            SELECT $1,$2,id,title,platform,format,condition,price_paise,photos[1],'completed','paid'
+            FROM listings WHERE seller_id=$2 AND status='sold'`,
+              [buyerId, sellerId],
+            );
+            const market = createMarketplace({
+              query: client.query.bind(client),
+            });
+            assert.deepEqual(await market.profile(sellerId), {
+              listed: 105,
+              sold: 105,
+              bought: 0,
+              orders: 105,
+            });
+            assert.deepEqual(await market.profile(buyerId), {
+              listed: 0,
+              sold: 0,
+              bought: 105,
+              orders: 105,
+            });
+            assert.deepEqual(await market.profile(ids.other), {
+              listed: 0,
+              sold: 0,
+              bought: 0,
+              orders: 1,
+            });
+            assert.equal((await market.orders(buyerId)).length, 100);
+            await assert.rejects(
+              market.order(ids.other, (await market.orders(buyerId))[0].id),
+              /Order not found/,
+            );
+          } finally {
+            await client.query("ROLLBACK TO SAVEPOINT profile_totals");
+            await client.query("RELEASE SAVEPOINT profile_totals");
+          }
         },
       );
       await t.test(

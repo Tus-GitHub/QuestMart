@@ -28,6 +28,9 @@ export function ExperienceHeader({
   description,
   children,
   studio = false,
+  icon: Icon,
+  orbitLabel,
+  orbitCaption,
 }) {
   const { motionDisabled, motionReady, reducedMotion, toggleMotion } = useUI();
   return (
@@ -71,16 +74,26 @@ export function ExperienceHeader({
         <div className="trade-orbit-ring orbit-two" />
         <div className="trade-core">
           <div className="trade-core-face">
-            {studio ? <CubeTransparentIcon /> : <ArrowPathIcon />}
-            <span>{studio ? "PLAYER / STUDIO" : "PLAY. PASS. REPEAT."}</span>
+            {Icon ? (
+              <Icon />
+            ) : studio ? (
+              <CubeTransparentIcon />
+            ) : (
+              <ArrowPathIcon />
+            )}
+            <span>
+              {orbitLabel ||
+                (studio ? "PLAYER / STUDIO" : "PLAY. PASS. REPEAT.")}
+            </span>
           </div>
         </div>
         <span className="orbit-satellite satellite-one" />
         <span className="orbit-satellite satellite-two" />
         <span className="orbit-caption">
-          {studio
-            ? "YOUR COLLECTION. YOUR NEXT CHAPTER."
-            : "A NEW PLAYER. ANOTHER ADVENTURE."}
+          {orbitCaption ||
+            (studio
+              ? "YOUR COLLECTION. YOUR NEXT CHAPTER."
+              : "A NEW PLAYER. ANOTHER ADVENTURE.")}
         </span>
       </div>
     </header>

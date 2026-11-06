@@ -93,7 +93,11 @@ export default function UIProvider({ children }) {
     >
       {children}
       {auth ? (
-        <AuthModal initialMode={auth} onClose={() => setAuth(null)} />
+        <AuthModal
+          initialMode={auth}
+          onClose={() => setAuth(null)}
+          motionDisabled={motionDisabled}
+        />
       ) : null}
       {toast ? (
         <div className="toast" role="status">

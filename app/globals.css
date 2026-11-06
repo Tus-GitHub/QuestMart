@@ -2,6 +2,7 @@
 @import "./discovery.css";
 @import "./immersive.css";
 @import "./commerce.css";
+@import "./account.css";
 .search-field {
   flex-direction: row !important;
 }
