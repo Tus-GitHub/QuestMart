@@ -1,0 +1,519 @@
+/* Optional spatial effects, scoped to the storefront. */
+.discovery-experience .hero-section {
+  height: 850px;
+  overflow: clip;
+}
+.discovery-experience .hero-image {
+  inset: -22px;
+  translate: var(--hero-move-x, 0px) var(--hero-move-y, 0px);
+  transition: translate 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.discovery-experience .hero-gradient {
+  background:
+    linear-gradient(90deg, #080c12fa 0%, #080c12d9 38%, #080c1280 78%),
+    linear-gradient(0deg, #0c0f13, transparent 85%);
+}
+.discovery-experience .hero-content {
+  position: relative;
+  z-index: 2;
+  padding-top: 134px;
+}
+.discovery-experience .hero-content h1 {
+  max-width: 58%;
+  font-size: clamp(64px, 6.9vw, 102px);
+}
+.hero-cursor-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s;
+  background: radial-gradient(
+    520px circle at var(--hero-light-x, 65%) var(--hero-light-y, 40%),
+    #a7d7a519,
+    transparent 75%
+  );
+}
+.is-tracking .hero-cursor-glow {
+  opacity: 1;
+}
+.motion-toggle {
+  position: absolute;
+  top: 18px;
+  right: max(48px, calc((100vw - 1320px) / 2));
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border: 1px solid #c1ef7633;
+  border-radius: 30px;
+  padding: 8px 12px;
+  color: #d6e9bf;
+  background: #131e1caa;
+  backdrop-filter: blur(12px);
+  font: 9px monospace;
+  letter-spacing: 0.05em;
+}
+.motion-toggle svg {
+  width: 12px;
+  height: 12px;
+}
+.motion-toggle:hover {
+  background: #283c29;
+}
+.motion-toggle[aria-pressed="true"] {
+  color: #adb9ca;
+  border-color: #ffffff25;
+  background: #141c27cc;
+}
+.hero-scene {
+  position: absolute;
+  z-index: 1;
+  top: 66px;
+  right: max(12px, calc((100vw - 1400px) / 2));
+  width: min(51%, 690px);
+  height: 420px;
+  pointer-events: none;
+}
+.scene-stage {
+  position: absolute;
+  inset: 0;
+}
+.scene-fallback,
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 0.7s;
+}
+.scene-fallback {
+  filter: drop-shadow(0 30px 30px #0008);
+  opacity: 1;
+}
+.scene-canvas {
+  opacity: 0;
+}
+[data-scene="ready"] .scene-fallback {
+  opacity: 0;
+}
+[data-scene="ready"] .scene-canvas {
+  opacity: 1;
+}
+.scene-aura {
+  position: absolute;
+  inset: 12% 10%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 25% 40%, #c1ef761a, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, #9c88ff24, transparent 65%);
+  filter: blur(20px);
+}
+.scene-coordinate {
+  position: absolute;
+  top: 25px;
+  left: 14%;
+  right: 12%;
+  display: flex;
+  justify-content: space-between;
+  color: #a9b9bb70;
+  font: 8px monospace;
+  letter-spacing: 0.18em;
+}
+.scene-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #a2b2b9;
+  font: 8px monospace;
+  letter-spacing: 0.12em;
+}
+.scene-signal {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c1ef76;
+  box-shadow: 0 0 12px #c1ef7670;
+}
+.scene-touch-hint {
+  display: none;
+}
+.discovery-experience .hero-dossier {
+  top: 517px;
+  width: min(42%, 575px);
+  padding: 18px 20px;
+  border: 1px solid #c1ef7626;
+  border-left: 2px solid #c1ef7690;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(120deg, #141e25cc, #12192066);
+  backdrop-filter: blur(12px);
+}
+.discovery-experience .hero-dossier .eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+.discovery-experience .hero-dossier h2 {
+  font-size: 26px;
+  margin-top: 8px;
+  max-width: 59%;
+}
+.discovery-experience .hero-dossier p {
+  display: none;
+}
+.discovery-experience .dossier-launch {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  translate: 0 -50%;
+  margin: 0;
+  font-size: 10px;
+  gap: 9px;
+}
+.discovery-experience .dossier-launch > span {
+  width: 34px;
+  height: 34px;
+}
+.discovery-experience .dossier-launch > span svg {
+  width: 15px;
+}
+
+/* The card shell rotates; artwork and controls sit on separate depth planes. */
+.discovery-experience [data-tilt] {
+  transform: perspective(950px) rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg)) translateY(var(--card-lift, 0px));
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.discovery-experience .game-card {
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(
+      circle at var(--light-x, 50%) var(--light-y, 0%),
+      #ffffff12,
+      transparent 65%
+    ),
+    #11161d;
+}
+.discovery-experience .game-card.reveal-in {
+  animation-name: spatial-card-enter;
+}
+.discovery-experience .is-tilting {
+  --card-lift: -6px;
+  z-index: 3;
+  will-change: transform;
+  transition-duration: 0.18s, 0.3s, 0.3s;
+}
+.discovery-experience .game-card-image,
+.discovery-experience .game-card-info,
+.discovery-experience .save-game {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.discovery-experience .game-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 15px 45px #0007;
+}
+.card-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      circle at var(--light-x, 50%) var(--light-y, 0%),
+      #ffffff24,
+      transparent 60%
+    ),
+    linear-gradient(
+      125deg,
+      transparent 20%,
+      #bdedff0d 35%,
+      #ceb6ff16 50%,
+      transparent 65%
+    );
+  transition: opacity 0.4s;
+}
+.game-card .card-shine {
+  transform: translateZ(32px);
+}
+.world-card .card-shine {
+  z-index: 1;
+}
+.discovery-experience .world-card > img {
+  transition:
+    scale 0.7s,
+    translate 0.4s;
+}
+.discovery-experience .world-copy {
+  transition: translate 0.35s;
+}
+@keyframes spatial-card-enter {
+  from {
+    opacity: 0;
+    translate: 0 20px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .discovery-experience .is-tilting .card-shine {
+    opacity: 1;
+  }
+  .discovery-experience .game-card.is-tilting {
+    box-shadow:
+      calc(var(--pointer-x, 0) * -14px) 24px 48px #0009,
+      0 0 26px color-mix(in srgb, var(--game-color), transparent 93%);
+  }
+  .discovery-experience .game-card.is-tilting .game-card-image {
+    transform: translateZ(26px);
+  }
+  .discovery-experience .game-card.is-tilting .game-card-info {
+    transform: translateZ(13px);
+  }
+  .discovery-experience .game-card.is-tilting .save-game {
+    transform: translateZ(48px);
+  }
+  .discovery-experience .game-card.is-tilting .game-card-image img {
+    transform: scale(1.14)
+      translate(
+        calc(var(--pointer-x, 0) * -7px),
+        calc(var(--pointer-y, 0) * -7px)
+      );
+    filter: brightness(0.78);
+  }
+  .discovery-experience .world-card.is-tilting > img {
+    scale: 1.12;
+    translate: calc(var(--pointer-x, 0) * -9px) calc(var(--pointer-y, 0) * -9px);
+  }
+  .discovery-experience .world-card.is-tilting .world-copy {
+    translate: calc(var(--pointer-x, 0) * 5px) calc(var(--pointer-y, 0) * 5px);
+  }
+}
+.discovery-experience.motion-paused *,
+.discovery-experience.motion-paused *::before,
+.discovery-experience.motion-paused *::after {
+  animation-play-state: paused !important;
+}
+.discovery-experience.motion-paused .hero-image,
+.discovery-experience.motion-paused .hero-dossier,
+.discovery-experience.motion-paused .reveal-in {
+  animation: none !important;
+}
+.motion-paused .hero-image {
+  translate: none;
+}
+.motion-paused .hero-cursor-glow,
+.motion-paused .card-shine {
+  opacity: 0;
+}
+.discovery-experience.motion-paused [data-tilt],
+.motion-paused .game-card-image,
+.motion-paused .game-card-info,
+.motion-paused .save-game,
+.motion-paused .game-card-image img {
+  transform: none !important;
+}
+.motion-paused .world-card > img,
+.motion-paused .world-copy {
+  translate: none !important;
+  scale: none !important;
+}
+
+@media (max-width: 1050px) and (min-width: 701px) {
+  .hero-scene {
+    width: 48%;
+    height: 350px;
+    top: 110px;
+    right: 10px;
+  }
+  .scene-caption {
+    font-size: 7px;
+    letter-spacing: 0.05em;
+  }
+  .discovery-experience .hero-dossier {
+    top: 470px;
+    right: 30px;
+    width: 40%;
+    padding: 16px;
+  }
+  .discovery-experience .hero-dossier h2 {
+    max-width: 100%;
+    font-size: 22px;
+  }
+  .discovery-experience .dossier-launch {
+    position: static;
+    translate: none;
+    margin-top: 14px;
+  }
+  .discovery-experience .hero-content p {
+    max-width: 46%;
+  }
+  .discovery-experience .hero-proof {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .discovery-experience .hero-actions {
+    flex-wrap: wrap;
+    max-width: 48%;
+  }
+}
+@media (max-width: 700px) {
+  .discovery-experience .hero-section {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding-bottom: 24px;
+  }
+  .discovery-experience .hero-content {
+    order: 1;
+    padding-top: 102px;
+  }
+  .discovery-experience .hero-content h1 {
+    max-width: 100%;
+    font-size: clamp(49px, 12vw, 80px);
+  }
+  .discovery-experience .hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 23px;
+  }
+  .discovery-experience .hero-actions .button {
+    font-size: 11px;
+    padding: 11px 13px;
+    min-height: 43px;
+  }
+  .discovery-experience .hero-proof {
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    font-size: 9px;
+  }
+  .hero-scene {
+    order: 2;
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    height: 260px;
+    flex: none;
+    margin: 12px auto 0;
+  }
+  .scene-coordinate {
+    top: 12px;
+    left: 16%;
+    right: 15%;
+    font-size: 7px;
+  }
+  .scene-caption {
+    font-size: 7px;
+    letter-spacing: 0.08em;
+  }
+  .motion-toggle {
+    right: 18px;
+    top: 18px;
+    padding-inline: 10px;
+    min-height: 32px;
+    font-size: 8px;
+  }
+  .discovery-experience .hero-coordinate {
+    top: 30px;
+    left: 20px;
+    font-size: 7px;
+    letter-spacing: 0.1em;
+  }
+  .discovery-experience .hero-dossier {
+    display: none;
+  }
+  .discovery-experience .hero-bottom {
+    order: 3;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 24px auto 0;
+  }
+  .discovery-experience .hero-selector {
+    order: 4;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 24px auto 0;
+  }
+}
+@media (min-width: 701px) and (max-width: 850px) {
+  .discovery-experience .hero-content h1 {
+    font-size: 58px;
+  }
+}
+@media (max-width: 360px) {
+  .discovery-experience .hero-content h1 {
+    font-size: 43px;
+  }
+  .discovery-experience .hero-actions .button {
+    font-size: 10px;
+    padding: 10px;
+    gap: 8px;
+  }
+  .discovery-experience .hero-actions svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  .scene-pointer-hint {
+    display: none;
+  }
+  .scene-touch-hint {
+    display: inline;
+  }
+  .discovery-experience [data-tilt],
+  .discovery-experience .game-card-image img {
+    transform: none !important;
+  }
+  .discovery-experience .world-card > img {
+    scale: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .discovery-experience .hero-image {
+    translate: none !important;
+  }
+  .hero-cursor-glow,
+  .card-shine {
+    display: none;
+  }
+  .scene-canvas {
+    display: none;
+  }
+  .scene-fallback {
+    opacity: 1 !important;
+  }
+  .discovery-experience [data-tilt],
+  .discovery-experience .game-card-image,
+  .discovery-experience .game-card-info,
+  .discovery-experience .game-card-image img,
+  .discovery-experience .save-game {
+    transform: none !important;
+  }
+  .discovery-experience .world-card > img,
+  .discovery-experience .world-copy {
+    translate: none !important;
+    scale: none !important;
+  }
+}

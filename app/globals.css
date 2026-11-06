@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./discovery.css";
+@import "./immersive.css";
 .search-field {
   flex-direction: row !important;
 }

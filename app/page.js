@@ -19,6 +19,8 @@ import { useUI } from "./components/UIProvider";
 import Media from "./components/Media";
 import GamePreview from "./components/GamePreview";
 import DiscoveryMotion from "./components/DiscoveryMotion";
+import DiscoveryCard from "./components/DiscoveryCard";
+import HeroScene from "./components/HeroScene";
 
 export default function Discover() {
   const [slide, setSlide] = useState(0),
@@ -27,7 +29,8 @@ export default function Discover() {
     [genre, setGenre] = useState("All games"),
     [search, setSearch] = useState(""),
     [onlySaved, setOnlySaved] = useState(false),
-    [reducedMotion, setReducedMotion] = useState(false);
+    [reducedMotion, setReducedMotion] = useState(false),
+    [motionReady, setMotionReady] = useState(false);
   const [library, setLibrary] = useState({
       results: catalog,
       count: null,
@@ -74,35 +77,66 @@ export default function Discover() {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => setReducedMotion(motion.matches);
     sync();
+    try {
+      setPaused(localStorage.getItem("questmart:motion-paused:v1") === "true");
+    } catch {}
+    setMotionReady(true);
     motion.addEventListener("change", sync);
     return () => motion.removeEventListener("change", sync);
   }, []);
   useEffect(() => {
-    if (paused || reducedMotion) return;
+    if (!motionReady || paused || reducedMotion || selected) return;
     const timer = setInterval(() => setSlide((value) => (value + 1) % 3), 7000);
     return () => clearInterval(timer);
-  }, [paused, reducedMotion, slide]);
+  }, [motionReady, paused, reducedMotion, slide, selected]);
+  function toggleMotion() {
+    const next = !paused;
+    setPaused(next);
+    try {
+      localStorage.setItem("questmart:motion-paused:v1", String(next));
+    } catch {}
+  }
   const hero = catalog[slide];
+  const motionDisabled = !motionReady || paused || reducedMotion;
   const games = library.results.filter(
     (game) => !onlySaved || saved.includes(game.id),
   );
   return (
-    <DiscoveryMotion>
-      <div className={"discover-page " + (paused ? "motion-paused" : "")}>
+    <DiscoveryMotion paused={motionDisabled}>
+      <div className="discover-page">
         <section
           className="hero-section"
           aria-label="Featured games"
           aria-roledescription="carousel"
+          data-hero-parallax
         >
           <div className="hero-image" key={hero.id}>
             <Media src={hero.hero} alt="" priority sizes="100vw" />
           </div>
           <div className="hero-gradient" />
           <div className="hero-grid" />
+          <div className="hero-cursor-glow" aria-hidden="true" />
           <div className="hero-orbit" aria-hidden="true" />
           <div className="hero-coordinate" aria-hidden="true">
             QM / DISCOVERY SYSTEM — 0{slide + 1}
           </div>
+          <button
+            className="motion-toggle"
+            onClick={toggleMotion}
+            disabled={!motionReady || reducedMotion}
+            aria-pressed={motionDisabled}
+            aria-label={
+              reducedMotion
+                ? "Animations disabled by your reduced-motion preference"
+                : motionDisabled
+                  ? "Resume animations"
+                  : "Pause animations"
+            }
+          >
+            {motionDisabled ? <PlayIcon /> : <PauseIcon />}
+            <span>{motionDisabled ? "Motion off" : "Motion on"}</span>
+          </button>
+          <HeroScene paused={motionDisabled || Boolean(selected)} />
           <div className="hero-content page-width">
             <div className="eyebrow hero-eyebrow">
               <span className="live-dot" /> THE NEXT LEVEL IS YOURS
@@ -177,13 +211,6 @@ export default function Discover() {
               </button>
               <button
                 className="icon-button"
-                aria-label={paused ? "Play slideshow" : "Pause slideshow"}
-                onClick={() => setPaused(!paused)}
-              >
-                {paused ? <PlayIcon /> : <PauseIcon />}
-              </button>
-              <button
-                className="icon-button"
                 aria-label="Next featured game"
                 onClick={() => setSlide((slide + 1) % 3)}
               >
@@ -218,7 +245,7 @@ export default function Discover() {
             key={hero.slug}
             style={{
               animationPlayState:
-                paused || reducedMotion ? "paused" : "running",
+                motionDisabled || selected ? "paused" : "running",
             }}
           />
         </section>
@@ -278,10 +305,12 @@ export default function Discover() {
                 data-tilt
                 onClick={() => setSelected(game)}
               >
+                <span className="card-shine" aria-hidden="true" />
                 <Media
                   src={game.hero || game.image}
                   alt=""
                   sizes="(max-width: 700px) 85vw, 33vw"
+                  draggable={false}
                 />
                 <span className="world-index">WORLD / 0{index + 1}</span>
                 <span className="world-copy">
@@ -376,60 +405,14 @@ export default function Discover() {
             aria-busy={loading}
           >
             {games.map((game, index) => (
-              <article
-                className="game-card reveal-in"
-                data-tilt
+              <DiscoveryCard
                 key={game.id}
-                style={{
-                  animationDelay: Math.min(index, 7) * 45 + "ms",
-                  "--game-color": game.color,
-                }}
-              >
-                <button
-                  className="game-card-image"
-                  onClick={() => setSelected(game)}
-                  aria-label={"Preview " + game.name}
-                >
-                  <Media src={game.image} alt={game.name} />
-                  <span className="preview-hover">
-                    <PlayIcon /> Quick look
-                  </span>
-                  <span className="game-card-year">{game.year}</span>
-                </button>
-                <button
-                  className={
-                    "save-game " + (saved.includes(game.id) ? "saved" : "")
-                  }
-                  aria-label={"Save " + game.name}
-                  aria-pressed={saved.includes(game.id)}
-                  onClick={() => toggleSaved(game.id)}
-                >
-                  <HeartIcon />
-                </button>
-                <div className="game-card-info">
-                  <span className="eyebrow">{game.genre}</span>
-                  <button onClick={() => setSelected(game)}>
-                    <h3>{game.name}</h3>
-                    <ArrowUpRightIcon />
-                  </button>
-                  <span className="game-platforms">
-                    {game.platforms.slice(0, 3).join(" · ")}
-                    {game.platforms.length > 3 ? " + more" : ""}
-                  </span>
-                  <a
-                    className="store-buy"
-                    href={game.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span>
-                      {game.price || "View store price"}
-                      <small>Buy new on Steam</small>
-                    </span>
-                    <ArrowUpRightIcon />
-                  </a>
-                </div>
-              </article>
+                game={game}
+                index={index}
+                saved={saved.includes(game.id)}
+                onPreview={setSelected}
+                onSave={toggleSaved}
+              />
             ))}
           </div>
           {!games.length && !loading ? (
