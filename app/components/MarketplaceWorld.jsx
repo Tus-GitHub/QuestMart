@@ -19,20 +19,22 @@ export default function MarketplaceWorld({ covered }) {
     engine = useRef(null);
   const { motionDisabled } = useUI();
   useEffect(() => {
-    let frame = 0;
+    const element = host.current;
+    let frame = 0, disposed = false;
     const update = () => {
       frame = 0;
-      if (motionDisabled || covered) return;
-      const box = host.current.getBoundingClientRect();
+      if (disposed || !element.isConnected || motionDisabled || covered) return;
+      const box = element.getBoundingClientRect();
       engine.current?.setProgress(
         Math.max(0, Math.min(1, -box.top / box.height)),
       );
     };
     const request = () => {
-      if (!frame) frame = requestAnimationFrame(update);
+      if (!disposed && !frame) frame = requestAnimationFrame(update);
     };
     window.addEventListener("scroll", request, { passive: true });
     return () => {
+      disposed = true;
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", request);
     };
