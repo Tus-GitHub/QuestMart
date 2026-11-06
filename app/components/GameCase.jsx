@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Media from "./Media";
 import { useUI } from "./UIProvider";
+import "../cinematic.css";
 
 export default function GameCase({
   game,

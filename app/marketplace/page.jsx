@@ -15,10 +15,10 @@ import {
 import { api, money, readable } from "@/lib/client-api.mjs";
 import { PLATFORMS } from "@/lib/listing-validation.mjs";
 import Media from "../components/Media";
-import ExperienceSurface, {
-  ExperienceHeader,
-} from "../components/ExperienceSurface";
+import ExperienceSurface from "../components/ExperienceSurface";
+import MarketplaceWorld from "../components/MarketplaceWorld";
 import { ListingPreview } from "../components/GamePreview";
+import "../market-immersive.css";
 
 export default function Marketplace() {
   const [q, setQ] = useState(""),
@@ -73,22 +73,8 @@ export default function Marketplace() {
   const filtered = Boolean(q || platform || sort !== "newest");
   return (
     <ExperienceSurface className="market-experience">
+      <MarketplaceWorld covered={Boolean(selected)} />
       <div className="page-width">
-        <ExperienceHeader
-          eyebrow="THE PLAYER EXCHANGE"
-          title="Great games."
-          accent="Next players."
-          description="Discover physical games from other players. Find your platform, meet your next favorite, and keep the adventure going."
-        >
-          <a href="#market-inventory" className="button primary">
-            Explore listings
-            <ArrowUpRightIcon />
-          </a>
-          <Link href="/sell" className="button glass">
-            List a game
-            <PlusIcon />
-          </Link>
-        </ExperienceHeader>
         <div className="exchange-strip">
           <span>
             <CubeIcon /> Physical copies
@@ -260,7 +246,7 @@ export default function Marketplace() {
             <div className="game-grid market-card-grid" aria-busy={loading}>
               {items.map((item, index) => (
                 <article
-                  className="game-card market-card reveal-in"
+                  className="game-card market-card market-display reveal-in"
                   data-tilt
                   key={item.id}
                   style={{
@@ -269,6 +255,10 @@ export default function Marketplace() {
                   }}
                 >
                   <span className="card-shine" aria-hidden="true" />
+                  <span className="market-display-number" aria-hidden="true">
+                    {String((page - 1) * 24 + index + 1).padStart(2, "0")} / THE
+                    EXCHANGE
+                  </span>
                   <Link
                     className="game-card-image"
                     href={"/listings/" + item.id}
@@ -289,7 +279,14 @@ export default function Marketplace() {
                   <button
                     className="market-quick-look"
                     aria-label={"Quick look at " + item.title}
-                    onClick={() => setSelected(item)}
+                    onClick={(event) =>
+                      setSelected({
+                        item,
+                        origin: event.currentTarget
+                          .closest("article")
+                          .querySelector(".game-card-image"),
+                      })
+                    }
                   >
                     <EyeIcon />
                     <span>Quick look</span>
@@ -350,7 +347,11 @@ export default function Marketplace() {
         </section>
       </div>
       {selected ? (
-        <ListingPreview item={selected} onClose={() => setSelected(null)} />
+        <ListingPreview
+          item={selected.item}
+          origin={selected.origin}
+          onClose={() => setSelected(null)}
+        />
       ) : null}
     </ExperienceSurface>
   );
