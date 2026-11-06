@@ -21,6 +21,22 @@
 }
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #52616f transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #52616f;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #8493a1;
 }
 html {
   scroll-behavior: smooth;
@@ -863,9 +879,14 @@ h3 {
   max-height: 90dvh;
   width: 440px;
   max-width: calc(100vw - 32px);
-  overflow: auto;
+  overflow: hidden;
   box-shadow: 0 30px 100px #000b;
   animation: modal-in 0.3s ease-out;
+}
+.dialog-scroll {
+  max-height: calc(90dvh - 2px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .dialog::backdrop {
   background: #040608c7;

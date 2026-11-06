@@ -45,7 +45,7 @@ export default function Dialog({ children, onClose, label, wide = false }) {
       >
         <XMarkIcon />
       </button>
-      {children}
+      <div className="dialog-scroll">{children}</div>
     </dialog>
   );
 }
