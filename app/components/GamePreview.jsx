@@ -2,12 +2,12 @@
 import Link from "next/link";
 import {
   ArrowUpRightIcon,
-  HeartIcon,
   CubeIcon,
   ComputerDesktopIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import Dialog from "./Dialog";
+import GameWorldPreview from "./GameWorldPreview";
 import Media from "./Media";
 import DiscoveryMotion from "./DiscoveryMotion";
 import { useUI } from "./UIProvider";
@@ -88,78 +88,8 @@ function PreviewLayout({
   );
 }
 
-export default function GamePreview({ game, onClose }) {
-  const { saved, toggleSaved } = useUI();
-  return (
-    <PreviewLayout
-      title={game.name}
-      image={game.hero || game.image}
-      eyebrow={game.genre + " / " + (game.year || "DISCOVER")}
-      tagline={game.tagline}
-      description={game.description}
-      platforms={game.platforms}
-      onClose={onClose}
-      facts={[
-        { label: "Genre", value: game.genre, Icon: CubeIcon },
-        {
-          label: "Release",
-          value: game.year || "See store",
-          Icon: CalendarDaysIcon,
-        },
-        {
-          label: "New-game store",
-          value: "Steam · PC",
-          Icon: ComputerDesktopIcon,
-        },
-      ]}
-      save={
-        <button
-          className={
-            "icon-button preview-save " +
-            (saved.includes(game.id) ? "saved" : "")
-          }
-          aria-label="Save game"
-          aria-pressed={saved.includes(game.id)}
-          onClick={() => toggleSaved(game.id)}
-        >
-          <HeartIcon />
-        </button>
-      }
-      footer={
-        <>
-          <div className="preview-purchase">
-            <div className="preview-price">
-              <span>STEAM REFERENCE PRICE</span>
-              <strong>{game.price || "Check store price"}</strong>
-            </div>
-            <div className="preview-purchase-actions">
-              <Link
-                className="button secondary"
-                href={"/marketplace?q=" + encodeURIComponent(game.name)}
-                onClick={onClose}
-              >
-                Player listings
-                <ArrowUpRightIcon />
-              </Link>
-              <a
-                className="button primary"
-                href={game.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Buy new on Steam
-                <ArrowUpRightIcon />
-              </a>
-            </div>
-          </div>
-          <p className="preview-disclosure">
-            New purchases are completed and fulfilled on Steam. Player listings
-            are separate offers on QuestMart.
-          </p>
-        </>
-      }
-    />
-  );
+export default function GamePreview(props) {
+  return <GameWorldPreview {...props} />;
 }
 
 export function ListingPreview({ item, onClose }) {

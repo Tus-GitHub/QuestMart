@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth.mjs";
 import AdminConsole from "./AdminConsole";
 import AdminAccess from "./AdminAccess";
 import "./admin.css";
+import "./admin-immersive.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Admin control room",

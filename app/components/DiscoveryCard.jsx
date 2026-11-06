@@ -21,7 +21,7 @@ function DiscoveryCard({ game, index, saved, onPreview, onSave }) {
       <span className="card-shine" aria-hidden="true" />
       <button
         className="game-card-image"
-        onClick={() => onPreview(game)}
+        onClick={(event) => onPreview(game, event.currentTarget)}
         aria-label={"Preview " + game.name}
       >
         <Media src={game.image} alt={game.name} draggable={false} />
@@ -40,7 +40,16 @@ function DiscoveryCard({ game, index, saved, onPreview, onSave }) {
       </button>
       <div className="game-card-info">
         <span className="eyebrow">{game.genre}</span>
-        <button onClick={() => onPreview(game)}>
+        <button
+          onClick={(event) =>
+            onPreview(
+              game,
+              event.currentTarget
+                .closest(".game-card")
+                .querySelector(".game-card-image"),
+            )
+          }
+        >
           <h3>{game.name}</h3>
           <ArrowUpRightIcon />
         </button>

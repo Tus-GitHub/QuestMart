@@ -21,6 +21,28 @@ export default function ExperienceSurface({ children, className = "" }) {
   );
 }
 
+export function MotionToggle({ className = "" }) {
+  const { motionDisabled, motionReady, reducedMotion, toggleMotion } = useUI();
+  return (
+    <button
+      className={`motion-toggle surface-motion ${className}`}
+      onClick={toggleMotion}
+      disabled={!motionReady || reducedMotion}
+      aria-pressed={motionDisabled}
+      aria-label={
+        reducedMotion
+          ? "Animations disabled by your reduced-motion preference"
+          : motionDisabled
+            ? "Resume animations"
+            : "Pause animations"
+      }
+    >
+      {motionDisabled ? <PlayIcon /> : <PauseIcon />}
+      <span>Motion {motionDisabled ? "off" : "on"}</span>
+    </button>
+  );
+}
+
 export function ExperienceHeader({
   eyebrow,
   title,
@@ -32,7 +54,6 @@ export function ExperienceHeader({
   orbitLabel,
   orbitCaption,
 }) {
-  const { motionDisabled, motionReady, reducedMotion, toggleMotion } = useUI();
   return (
     <header
       className={`experience-header ${studio ? "studio-header" : ""}`}
@@ -43,22 +64,7 @@ export function ExperienceHeader({
         <span className="eyebrow">
           <span className="live-dot" /> {eyebrow}
         </span>
-        <button
-          className="motion-toggle surface-motion"
-          onClick={toggleMotion}
-          disabled={!motionReady || reducedMotion}
-          aria-pressed={motionDisabled}
-          aria-label={
-            reducedMotion
-              ? "Animations disabled by your reduced-motion preference"
-              : motionDisabled
-                ? "Resume animations"
-                : "Pause animations"
-          }
-        >
-          {motionDisabled ? <PlayIcon /> : <PauseIcon />}
-          <span>Motion {motionDisabled ? "off" : "on"}</span>
-        </button>
+        <MotionToggle />
       </div>
       <div className="experience-copy">
         <h1>

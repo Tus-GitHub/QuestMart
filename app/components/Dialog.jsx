@@ -9,18 +9,22 @@ export default function Dialog({
   wide = false,
   className = "",
   footer,
+  onOpen,
 }) {
   const ref = useRef(null);
+  const openCallback = useRef(onOpen);
+  openCallback.current = onOpen;
   useEffect(() => {
     const dialog = ref.current;
     const previous = document.activeElement;
     dialog.showModal();
+    openCallback.current?.(dialog);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       dialog.close();
       document.body.style.overflow = previousOverflow;
-      previous?.focus?.();
+      previous?.focus?.({ preventScroll: true });
     };
   }, []);
   return (

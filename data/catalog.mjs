@@ -145,6 +145,11 @@ export const catalog = entries.map(
     description,
     color,
     image: `/games/${slug}.jpg`,
+    cover: ["elden-ring", "cyberpunk-2077", "red-dead-redemption-2"].includes(
+      slug,
+    )
+      ? `/games/${slug}-cover.jpg`
+      : null,
     hero: ["elden-ring", "cyberpunk-2077", "red-dead-redemption-2"].includes(
       slug,
     )

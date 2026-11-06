@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRightIcon,
   ArrowRightIcon,
@@ -8,8 +8,6 @@ import {
   ChevronRightIcon,
   HeartIcon,
   MagnifyingGlassIcon,
-  PauseIcon,
-  PlayIcon,
   ShieldCheckIcon,
   ArrowPathIcon,
   CubeIcon,
@@ -20,11 +18,15 @@ import Media from "./components/Media";
 import GamePreview from "./components/GamePreview";
 import DiscoveryMotion from "./components/DiscoveryMotion";
 import DiscoveryCard from "./components/DiscoveryCard";
-import HeroScene from "./components/HeroScene";
+import CinematicHero from "./components/CinematicHero";
+import PortalEntrance from "./components/PortalEntrance";
+import GameVault from "./components/GameVault";
+import "./cinematic.css";
+
+const featuredGames = catalog.slice(0, 3);
 
 export default function Discover() {
-  const [slide, setSlide] = useState(0),
-    [selected, setSelected] = useState(null),
+  const [selected, setSelected] = useState(null),
     [genre, setGenre] = useState("All games"),
     [search, setSearch] = useState(""),
     [onlySaved, setOnlySaved] = useState(false);
@@ -37,14 +39,34 @@ export default function Discover() {
     [loading, setLoading] = useState(true),
     [catalogError, setCatalogError] = useState(""),
     [retry, setRetry] = useState(0);
-  const {
-    saved,
-    toggleSaved,
-    motionDisabled,
-    motionReady,
-    reducedMotion,
-    toggleMotion,
-  } = useUI();
+  const { saved, toggleSaved, motionDisabled } = useUI();
+  const [portal, setPortal] = useState(null);
+  const previewOrigin = useRef(null);
+  const vaultRequested = useRef(false);
+  const openPreview = useCallback((game, element = null) => {
+    previewOrigin.current = element;
+    setSelected(game);
+  }, []);
+  function enterVault() {
+    vaultRequested.current = true;
+    setPortal(null);
+  }
+  useEffect(() => {
+    if (portal || !vaultRequested.current) return;
+    vaultRequested.current = false;
+    const frame = requestAnimationFrame(() => {
+      document
+        .getElementById("game-vault")
+        ?.scrollIntoView({
+          behavior: motionDisabled ? "auto" : "smooth",
+          block: "start",
+        });
+      document
+        .getElementById("game-vault-title")
+        ?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [portal, motionDisabled]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -77,163 +99,18 @@ export default function Discover() {
       controller.abort();
     };
   }, [page, search, genre, retry]);
-  useEffect(() => {
-    if (motionDisabled || selected) return;
-    const timer = setInterval(() => setSlide((value) => (value + 1) % 3), 7000);
-    return () => clearInterval(timer);
-  }, [motionDisabled, slide, selected]);
-  const hero = catalog[slide];
   const games = library.results.filter(
     (game) => !onlySaved || saved.includes(game.id),
   );
   return (
     <DiscoveryMotion paused={motionDisabled}>
       <div className="discover-page">
-        <section
-          className="hero-section"
-          aria-label="Featured games"
-          aria-roledescription="carousel"
-          data-hero-parallax
-        >
-          <div className="hero-image" key={hero.id}>
-            <Media src={hero.hero} alt="" priority sizes="100vw" />
-          </div>
-          <div className="hero-gradient" />
-          <div className="hero-grid" />
-          <div className="hero-cursor-glow" aria-hidden="true" />
-          <div className="hero-orbit" aria-hidden="true" />
-          <div className="hero-coordinate" aria-hidden="true">
-            QM / DISCOVERY SYSTEM — 0{slide + 1}
-          </div>
-          <button
-            className="motion-toggle"
-            onClick={toggleMotion}
-            disabled={!motionReady || reducedMotion}
-            aria-pressed={motionDisabled}
-            aria-label={
-              reducedMotion
-                ? "Animations disabled by your reduced-motion preference"
-                : motionDisabled
-                  ? "Resume animations"
-                  : "Pause animations"
-            }
-          >
-            {motionDisabled ? <PlayIcon /> : <PauseIcon />}
-            <span>{motionDisabled ? "Motion off" : "Motion on"}</span>
-          </button>
-          <HeroScene paused={motionDisabled || Boolean(selected)} />
-          <div className="hero-content page-width">
-            <div className="eyebrow hero-eyebrow">
-              <span className="live-dot" /> THE NEXT LEVEL IS YOURS
-            </div>
-            <h1>
-              PLAY IT.
-              <br />
-              <em>PASS IT ON.</em>
-            </h1>
-            <p>
-              Discover new releases. Find your next obsession.
-              <br className="desktop-only" /> Buy new, trade favorites, and keep
-              playing.
-            </p>
-            <div className="hero-actions">
-              <Link href="/#discover" className="button primary">
-                Explore all games
-                <ArrowUpRightIcon />
-              </Link>
-              <Link href="/sell" className="button glass">
-                Sell your games
-                <ArrowRightIcon />
-              </Link>
-            </div>
-            <div className="hero-proof">
-              <span>
-                <ShieldCheckIcon />
-                New games + player listings
-              </span>
-              <span>
-                <ArrowPathIcon />
-                Discover. Play. Repeat.
-              </span>
-            </div>
-          </div>
-          <div className="hero-dossier" key={hero.id + "-dossier"}>
-            <span className="eyebrow">FEATURED WORLD / 0{slide + 1}</span>
-            <h2>{hero.name}</h2>
-            <p>{hero.tagline}</p>
-            <button
-              className="dossier-launch"
-              onClick={() => setSelected(hero)}
-            >
-              <span>
-                <PlayIcon />
-              </span>{" "}
-              Explore this world <ArrowUpRightIcon />
-            </button>
-          </div>
-          <div className="hero-bottom page-width">
-            <button className="featured-game" onClick={() => setSelected(hero)}>
-              <span className="tiny-cover">
-                <Media src={hero.image} alt="" sizes="80px" />
-              </span>
-              <span>
-                <small>IN THE SPOTLIGHT</small>
-                <strong>{hero.name}</strong>
-              </span>
-              <ArrowUpRightIcon />
-            </button>
-            <div className="slide-controls">
-              <span className="slide-number">
-                0{slide + 1}
-                <i> / 03</i>
-              </span>
-              <button
-                className="icon-button"
-                aria-label="Previous featured game"
-                onClick={() => setSlide((slide + 2) % 3)}
-              >
-                <ChevronLeftIcon />
-              </button>
-              <button
-                className="icon-button"
-                aria-label="Next featured game"
-                onClick={() => setSlide((slide + 1) % 3)}
-              >
-                <ChevronRightIcon />
-              </button>
-            </div>
-          </div>
-          <div
-            className="hero-selector page-width"
-            aria-label="Choose featured game"
-          >
-            {catalog.slice(0, 3).map((game, index) => (
-              <button
-                key={game.id}
-                className={slide === index ? "active" : ""}
-                aria-pressed={slide === index}
-                onClick={() => setSlide(index)}
-              >
-                <Media src={game.image} alt="" sizes="180px" />
-                <span>
-                  <small>
-                    0{index + 1} / {game.genre}
-                  </small>
-                  <strong>{game.name}</strong>
-                </span>
-                <ArrowUpRightIcon />
-              </button>
-            ))}
-          </div>
-          <div
-            className="hero-progress"
-            key={hero.slug}
-            style={{
-              animationPlayState:
-                motionDisabled || selected ? "paused" : "running",
-            }}
-          />
-        </section>
+        <CinematicHero
+          games={featuredGames}
+          onPreview={openPreview}
+          onPortal={setPortal}
+          covered={Boolean(selected || portal)}
+        />
         <div className="platform-strip">
           <div className="page-width">
             <span>
@@ -266,49 +143,7 @@ export default function Discover() {
             ))}
           </div>
         </div>
-        <section className="worlds-section section page-width" data-reveal>
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">SIDE QUESTS ENCOURAGED</span>
-              <h2>
-                Choose your world<span className="accent">.</span>
-              </h2>
-            </div>
-            <span className="worlds-caption">
-              Different moods. Endless possibilities.
-            </span>
-          </div>
-          <div className="worlds-grid">
-            {[
-              [catalog[0], "Get beautifully lost", "Open-world adventures"],
-              [catalog[1], "Break the rules", "Stories after dark"],
-              [catalog[6], "Chase the horizon", "One more race"],
-            ].map(([game, title, label], index) => (
-              <button
-                className="world-card"
-                key={game.id}
-                data-tilt
-                onClick={() => setSelected(game)}
-              >
-                <span className="card-shine" aria-hidden="true" />
-                <Media
-                  src={game.hero || game.image}
-                  alt=""
-                  sizes="(max-width: 700px) 85vw, 33vw"
-                  draggable={false}
-                />
-                <span className="world-index">WORLD / 0{index + 1}</span>
-                <span className="world-copy">
-                  <small>{label}</small>
-                  <strong>{title}</strong>
-                  <span>
-                    Discover the game <ArrowUpRightIcon />
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+        <GameVault games={featuredGames} onPreview={openPreview} />
         <section className="section page-width" id="discover" data-reveal>
           <div className="section-heading">
             <div>
@@ -395,7 +230,7 @@ export default function Discover() {
                 game={game}
                 index={index}
                 saved={saved.includes(game.id)}
-                onPreview={setSelected}
+                onPreview={openPreview}
                 onSave={toggleSaved}
               />
             ))}
@@ -514,8 +349,19 @@ export default function Discover() {
             ))}
           </div>
         </section>
+        {portal ? (
+          <PortalEntrance
+            game={portal}
+            onClose={() => setPortal(null)}
+            onEnter={enterVault}
+          />
+        ) : null}
         {selected ? (
-          <GamePreview game={selected} onClose={() => setSelected(null)} />
+          <GamePreview
+            game={selected}
+            origin={previewOrigin.current}
+            onClose={() => setSelected(null)}
+          />
         ) : null}
       </div>
     </DiscoveryMotion>

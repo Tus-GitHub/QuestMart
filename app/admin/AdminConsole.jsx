@@ -17,12 +17,19 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CheckCircleIcon,
+  CubeTransparentIcon,
+  LockClosedIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { api, money, readable } from "@/lib/client-api.mjs";
 import { signInSuccess, signOutUserSuccess } from "@/redux/user/userSlice";
 import { useUI } from "../components/UIProvider";
 import Dialog from "../components/Dialog";
 import Media from "../components/Media";
+import ExperienceSurface, {
+  MotionToggle,
+} from "../components/ExperienceSurface";
 
 const sections = [
   ["overview", "Overview", Squares2X2Icon, "Your marketplace, at a glance."],
@@ -231,236 +238,285 @@ export default function AdminConsole({ initialUser }) {
   }
   const selected = sections.find(([id]) => id === section);
   return (
-    <div className="admin-shell">
-      <aside className="admin-sidebar">
-        <div className="admin-brand">
-          <span className="admin-brand-icon">
-            <ShieldCheckIcon />
-          </span>
-          <div>
-            <strong>Control room</strong>
-            <small>QUESTMART ADMIN</small>
-          </div>
-        </div>
-        <span className="admin-nav-label">WORKSPACE</span>
-        <nav aria-label="Admin sections">
-          {sections.map(([id, label, Icon]) => (
-            <button
-              key={id}
-              className={section === id ? "active" : ""}
-              aria-current={section === id ? "page" : undefined}
-              disabled={user.passwordChangeRequired && id !== "security"}
-              onClick={() => navigate(id)}
-            >
-              <Icon />
-              <span>{label}</span>
-              {id === section ? <span className="admin-nav-dot" /> : null}
-            </button>
-          ))}
-        </nav>
-        <div className="admin-sidebar-bottom">
-          <div className="admin-identity">
-            <span>{user.username.slice(0, 2).toUpperCase()}</span>
+    <ExperienceSurface className="admin-experience">
+      <div className="admin-shell">
+        <aside className="admin-sidebar">
+          <div className="admin-brand">
+            <span className="admin-brand-icon">
+              <ShieldCheckIcon />
+            </span>
             <div>
-              <strong>{user.username}</strong>
-              <small>Administrator</small>
+              <strong>Control room</strong>
+              <small>QUESTMART ADMIN</small>
             </div>
           </div>
-          <Link href="/">
-            Open storefront <ArrowUpRightIcon />
-          </Link>
-        </div>
-      </aside>
-      <section className="admin-workspace">
-        <div className="admin-breadcrumb">
-          <span>WORKSPACE</span>
-          <span>/</span>
-          <span>{selected[1]}</span>
-          <span className="admin-protected">
-            <ShieldCheckIcon /> Protected session
-          </span>
-        </div>
-        <header className="admin-heading">
-          <div>
-            <span className="eyebrow">YOU’RE IN CONTROL</span>
-            <h1>
-              {section === "overview" ? "Mission overview" : selected[1]}
-              <span className="accent">.</span>
-            </h1>
-            <p>{selected[3]}</p>
+          <span className="admin-nav-label">WORKSPACE</span>
+          <nav aria-label="Admin sections">
+            {sections.map(([id, label, Icon]) => (
+              <button
+                key={id}
+                className={section === id ? "active" : ""}
+                aria-current={section === id ? "page" : undefined}
+                disabled={user.passwordChangeRequired && id !== "security"}
+                onClick={() => navigate(id)}
+              >
+                <Icon />
+                <span>{label}</span>
+                {id === section ? <span className="admin-nav-dot" /> : null}
+              </button>
+            ))}
+          </nav>
+          <div className="admin-sidebar-bottom">
+            <div className="admin-identity">
+              <span>{user.username.slice(0, 2).toUpperCase()}</span>
+              <div>
+                <strong>{user.username}</strong>
+                <small>Administrator</small>
+              </div>
+            </div>
+            <Link href="/">
+              Open storefront <ArrowUpRightIcon />
+            </Link>
           </div>
-          <button
-            className="button secondary admin-refresh"
-            onClick={() => setRevision((v) => v + 1)}
-            disabled={loading}
+        </aside>
+        <section className="admin-workspace">
+          <div className="admin-breadcrumb">
+            <span>WORKSPACE</span>
+            <span>/</span>
+            <span>{selected[1]}</span>
+            <span className="admin-protected">
+              <ShieldCheckIcon /> Protected session
+            </span>
+            <MotionToggle className="admin-motion-toggle" />
+          </div>
+          <header
+            className="admin-heading admin-command-header"
+            data-hero-parallax
           >
-            <ArrowPathIcon className={loading ? "admin-spin" : ""} />
-            Refresh
-          </button>
-        </header>
-        {error ? (
-          <div className="admin-error" role="alert">
-            {error}
-            <button onClick={() => setRevision((v) => v + 1)}>Try again</button>
-          </div>
-        ) : null}
-        {section === "security" ? (
-          <Security
-            user={user}
-            onSuccess={(updated) => {
-              setUser(updated);
-              dispatch(signInSuccess(updated));
-              notify("Password updated. Other sessions have been signed out.");
-              navigate("overview");
-              router.refresh();
-            }}
-          />
-        ) : (
-          <>
-            {section !== "overview" ? (
-              <div className="admin-toolbar">
-                <label className="admin-search">
-                  <MagnifyingGlassIcon />
-                  <input
-                    aria-label={`Search ${selected[1].toLowerCase()}`}
-                    placeholder={
-                      section === "orders"
-                        ? "Search game, player or order ID…"
-                        : "Search " + selected[1].toLowerCase() + "…"
-                    }
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value);
-                      setPage(1);
-                    }}
-                  />
-                </label>
-                <label className="admin-filter">
-                  <span className="sr-only">Filter {selected[1]}</span>
-                  <select
-                    aria-label={`Filter ${selected[1].toLowerCase()}`}
-                    value={filter}
-                    onChange={(event) => {
-                      setFilter(event.target.value);
-                      setPage(1);
-                    }}
+            <div className="experience-grid" aria-hidden="true" />
+            <div className="admin-command-copy">
+              <span className="eyebrow">
+                <span className="live-dot" /> YOUR MARKETPLACE. YOUR MISSION.
+              </span>
+              <h1>
+                {section === "overview" ? (
+                  <>
+                    Keep the game
+                    <br />
+                    <em>going.</em>
+                  </>
+                ) : (
+                  <>
+                    {selected[1]}
+                    <span className="accent">.</span>
+                  </>
+                )}
+              </h1>
+              <p>{selected[3]}</p>
+              <button
+                className="button secondary admin-refresh"
+                aria-label="Refresh admin data"
+                onClick={() => setRevision((v) => v + 1)}
+                disabled={loading}
+              >
+                <ArrowPathIcon className={loading ? "admin-spin" : ""} />
+                Refresh
+              </button>
+            </div>
+            <div className="admin-command-art" aria-hidden="true">
+              <div className="admin-command-ring" />
+              <div className="admin-command-ring ring-two" />
+              <div className="admin-command-core">
+                <ShieldCheckIcon />
+                <span>QUEST / CONTROL</span>
+              </div>
+              <span className="admin-command-caption">
+                BUILT FOR THE PEOPLE BEHIND THE PLAY
+              </span>
+            </div>
+          </header>
+          {error ? (
+            <div className="admin-error" role="alert">
+              {error}
+              <button onClick={() => setRevision((v) => v + 1)}>
+                Try again
+              </button>
+            </div>
+          ) : null}
+          {section === "security" ? (
+            <Security
+              user={user}
+              onSuccess={(updated) => {
+                setUser(updated);
+                dispatch(signInSuccess(updated));
+                notify(
+                  "Password updated. Other sessions have been signed out.",
+                );
+                navigate("overview");
+                router.refresh();
+              }}
+            />
+          ) : (
+            <>
+              {section !== "overview" ? (
+                <div className="admin-toolbar">
+                  <label className="admin-search">
+                    <MagnifyingGlassIcon />
+                    <input
+                      aria-label={`Search ${selected[1].toLowerCase()}`}
+                      placeholder={
+                        section === "orders"
+                          ? "Search game, player or order ID…"
+                          : "Search " + selected[1].toLowerCase() + "…"
+                      }
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </label>
+                  <label className="admin-filter">
+                    <span className="sr-only">Filter {selected[1]}</span>
+                    <select
+                      aria-label={`Filter ${selected[1].toLowerCase()}`}
+                      value={filter}
+                      onChange={(event) => {
+                        setFilter(event.target.value);
+                        setPage(1);
+                      }}
+                    >
+                      {filters[section].map((value) => (
+                        <option key={value} value={value}>
+                          {value === "all" ? "All records" : readable(value)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    className="button secondary"
+                    disabled={!data?.rows?.length || loading}
+                    onClick={() => exportRows(section, data.rows)}
                   >
-                    {filters[section].map((value) => (
-                      <option key={value} value={value}>
-                        {value === "all" ? "All records" : readable(value)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  className="button secondary"
-                  disabled={!data?.rows?.length || loading}
-                  onClick={() => exportRows(section, data.rows)}
-                >
-                  <ArrowDownTrayIcon />
-                  Export this page
-                </button>
-              </div>
-            ) : null}
-            {loading ? (
-              <div className="admin-loading" role="status">
-                <span className="admin-spinner" />
-                Loading {selected[1].toLowerCase()}…
-              </div>
-            ) : data ? (
-              section === "overview" ? (
-                <Overview data={data} navigate={navigate} />
-              ) : (
-                <>
-                  <div className="admin-panel admin-records">
-                    <div className="admin-panel-heading">
-                      <h2>{selected[1]}</h2>
-                      <span>
-                        {data.total.toLocaleString()}{" "}
-                        {data.total === 1 ? "record" : "records"}
-                      </span>
-                    </div>
-                    {!data.rows.length ? (
-                      <Empty
-                        text={
-                          search || filter !== "all"
-                            ? "No matching records."
-                            : "Nothing here yet."
-                        }
-                        detail={
-                          search || filter !== "all"
-                            ? "Try a different search or reset the filter."
-                            : undefined
-                        }
-                      />
-                    ) : (
-                      <RecordTable
-                        section={section}
-                        rows={data.rows}
-                        actorId={user._id}
-                        action={action}
-                        viewOrder={viewOrder}
-                        setDetail={setDetail}
-                      />
-                    )}
-                    <div className="admin-pagination">
-                      <span>
-                        Page {data.page} of {data.pages}
-                      </span>
-                      <div>
-                        <button
-                          className="icon-button"
-                          aria-label="Previous admin page"
-                          disabled={data.page <= 1}
-                          onClick={() => setPage(data.page - 1)}
-                        >
-                          <ChevronLeftIcon />
-                        </button>
-                        <button
-                          className="icon-button"
-                          aria-label="Next admin page"
-                          disabled={data.page >= data.pages}
-                          onClick={() => setPage(data.page + 1)}
-                        >
-                          <ChevronRightIcon />
-                        </button>
+                    <ArrowDownTrayIcon />
+                    Export this page
+                  </button>
+                </div>
+              ) : null}
+              {loading ? (
+                <div className="admin-loading" role="status">
+                  <span className="admin-spinner" />
+                  Loading {selected[1].toLowerCase()}…
+                </div>
+              ) : data ? (
+                section === "overview" ? (
+                  <Overview data={data} navigate={navigate} />
+                ) : (
+                  <>
+                    <div className="admin-panel admin-records">
+                      <div className="admin-panel-heading">
+                        <h2>{selected[1]}</h2>
+                        <span>
+                          {data.total.toLocaleString()}{" "}
+                          {data.total === 1 ? "record" : "records"}
+                        </span>
+                      </div>
+                      {!data.rows.length ? (
+                        <Empty
+                          text={
+                            search || filter !== "all"
+                              ? "No matching records."
+                              : "Nothing here yet."
+                          }
+                          detail={
+                            search || filter !== "all"
+                              ? "Try a different search or reset the filter."
+                              : undefined
+                          }
+                        />
+                      ) : (
+                        <RecordTable
+                          section={section}
+                          rows={data.rows}
+                          actorId={user._id}
+                          action={action}
+                          viewOrder={viewOrder}
+                          setDetail={setDetail}
+                        />
+                      )}
+                      {!data.rows.length && (search || filter !== "all") ? (
+                        <div className="admin-reset-search">
+                          <button
+                            className="button secondary"
+                            onClick={() => {
+                              setSearch("");
+                              setFilter("all");
+                              setPage(1);
+                            }}
+                          >
+                            Clear search and filters
+                          </button>
+                        </div>
+                      ) : null}
+                      <div className="admin-pagination">
+                        <span>
+                          Page {data.page} of {data.pages}
+                        </span>
+                        <div>
+                          <button
+                            className="icon-button"
+                            aria-label="Previous admin page"
+                            disabled={data.page <= 1}
+                            onClick={() => setPage(data.page - 1)}
+                          >
+                            <ChevronLeftIcon />
+                          </button>
+                          <button
+                            className="icon-button"
+                            aria-label="Next admin page"
+                            disabled={data.page >= data.pages}
+                            onClick={() => setPage(data.page + 1)}
+                          >
+                            <ChevronRightIcon />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )
-            ) : null}
-          </>
-        )}
-        <p className="admin-footnote">
-          QUESTMART OPERATIONS{" "}
-          <span>
-            Times shown in India Standard Time · Changes are recorded in the
-            activity log
-          </span>
-        </p>
-      </section>
-      {confirmation ? (
-        <ConfirmAction
-          value={confirmation}
-          onClose={() => setConfirmation(null)}
-          onSuccess={() => {
-            setConfirmation(null);
-            setRevision((v) => v + 1);
-            notify("Change saved and recorded in the activity log.");
-          }}
-        />
-      ) : null}
-      {detail ? (
-        <DetailDialog
-          detail={detail}
-          onClose={() => {
-            detailRevision.current++;
-            setDetail(null);
-          }}
-        />
-      ) : null}
-    </div>
+                  </>
+                )
+              ) : null}
+            </>
+          )}
+          <p className="admin-footnote">
+            QUESTMART OPERATIONS{" "}
+            <span>
+              Times shown in India Standard Time · Changes are recorded in the
+              activity log
+            </span>
+          </p>
+        </section>
+        {confirmation ? (
+          <ConfirmAction
+            value={confirmation}
+            onClose={() => setConfirmation(null)}
+            onSuccess={() => {
+              setConfirmation(null);
+              setRevision((v) => v + 1);
+              notify("Change saved and recorded in the activity log.");
+            }}
+          />
+        ) : null}
+        {detail ? (
+          <DetailDialog
+            detail={detail}
+            onClose={() => {
+              detailRevision.current++;
+              setDetail(null);
+            }}
+          />
+        ) : null}
+      </div>
+    </ExperienceSurface>
   );
 }
 
@@ -502,9 +558,11 @@ function Overview({ data, navigate }) {
             "Test mode · not store revenue",
             "orders",
           ],
-        ].map(([title, value, Icon, note, section]) => (
+        ].map(([title, value, Icon, note, section], index) => (
           <button
             className="admin-stat"
+            data-tilt
+            style={{ "--admin-delay": `${index * 55}ms` }}
             key={title}
             onClick={() => navigate(section)}
           >
@@ -512,7 +570,13 @@ function Overview({ data, navigate }) {
               <span>{title}</span>
               <Icon />
             </div>
-            <strong>{value}</strong>
+            <strong
+              className={
+                String(value).length > 7 ? "admin-stat-long" : undefined
+              }
+            >
+              {value}
+            </strong>
             <small>
               {note}
               <ArrowUpRightIcon />
@@ -604,7 +668,10 @@ function Overview({ data, navigate }) {
               <span className="eyebrow">SERVICE STATUS</span>
               <h2>Connected systems</h2>
             </div>
-            <span className="admin-status-dot" />
+            <CubeTransparentIcon
+              className="admin-service-icon"
+              aria-hidden="true"
+            />
           </div>
           {[
             ["PostgreSQL", data.services.database],
@@ -613,7 +680,16 @@ function Overview({ data, navigate }) {
             ["Player payments", data.services.payments],
           ].map(([title, status]) => (
             <div className="admin-service" key={title}>
-              <span>{title}</span>
+              <span>
+                <i
+                  className={
+                    title === "Player payments" || status === "Not configured"
+                      ? "service-pending"
+                      : "service-ready"
+                  }
+                />
+                {title}
+              </span>
               <strong>{status}</strong>
             </div>
           ))}
@@ -678,20 +754,26 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
   }[section];
   return (
     <div className="admin-table-wrap">
-      <table className="admin-table">
+      <table
+        className="admin-table"
+        role="table"
+        aria-label={`${section} records`}
+      >
         <thead>
-          <tr>
+          <tr role="row">
             {headings.map((heading) => (
-              <th key={heading}>{heading}</th>
+              <th scope="col" role="columnheader" key={heading}>
+                {heading}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((item) => (
-            <tr key={item.id}>
+            <tr key={item.id} role="row">
               {section === "users" ? (
                 <>
-                  <td>
+                  <td role="cell" data-label={headings[0]}>
                     <div className="admin-player-cell">
                       <span>{item.username.slice(0, 2).toUpperCase()}</span>
                       <div>
@@ -704,14 +786,16 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[1]}>
                     <Badge value={item.role} />
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[2]}>
                     <Badge value={item.account_status} />
                   </td>
-                  <td>{date(item.created_at)}</td>
-                  <td>
+                  <td role="cell" data-label={headings[3]}>
+                    {date(item.created_at)}
+                  </td>
+                  <td role="cell" data-label={headings[4]}>
                     <div className="admin-row-actions">
                       <button
                         disabled={item.id === actorId}
@@ -745,26 +829,35 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
               ) : null}
               {section === "listings" ? (
                 <>
-                  <td>
-                    <strong>{item.title}</strong>
-                    <small>
-                      {item.platform} · {item.seller_name}
-                    </small>
-                    <small>
-                      {readable(item.condition)} · {readable(item.format)}
-                    </small>
-                    {item.seller_status === "suspended" ? (
-                      <Badge value="suspended" />
-                    ) : null}
+                  <td role="cell" data-label={headings[0]}>
+                    <div className="admin-game-cell">
+                      <div className="admin-game-thumb">
+                        <Media src={item.photos?.[0]} alt="" sizes="52px" />
+                      </div>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <small>
+                          {item.platform} · {item.seller_name}
+                        </small>
+                        <small>
+                          {readable(item.condition)} · {readable(item.format)}
+                        </small>
+                        {item.seller_status === "suspended" ? (
+                          <Badge value="suspended" />
+                        ) : null}
+                      </div>
+                    </div>
                   </td>
-                  <td>{money(item.price_paise)}</td>
-                  <td>
+                  <td role="cell" data-label={headings[1]}>
+                    {money(item.price_paise)}
+                  </td>
+                  <td role="cell" data-label={headings[2]}>
                     <Badge value={item.status} />
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[3]}>
                     <Badge value={item.moderation_status} />
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[4]}>
                     <div className="admin-row-actions">
                       <button
                         onClick={() => setDetail({ type: "listing", item })}
@@ -791,24 +884,24 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
               ) : null}
               {section === "orders" ? (
                 <>
-                  <td>
+                  <td role="cell" data-label={headings[0]}>
                     <strong>{item.snapshot_title}</strong>
                     <small className="admin-mono">{item.id.slice(0, 8)}</small>
                     <small>{date(item.created_at)}</small>
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[1]}>
                     <strong>{item.buyer_name}</strong>
                     <small>Seller: {item.seller_name}</small>
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[2]}>
                     {money(item.snapshot_price_paise)}
                     <small>{item.payment_mode} mode</small>
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[3]}>
                     <Badge value={item.status} />
                     <small>Payment: {item.payment_status}</small>
                   </td>
-                  <td>
+                  <td role="cell" data-label={headings[4]}>
                     <div className="admin-row-actions">
                       <button onClick={() => viewOrder(item)}>
                         View order
@@ -831,7 +924,7 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
               ) : null}
               {section === "activity" ? (
                 <>
-                  <td>
+                  <td role="cell" data-label={headings[0]}>
                     <strong>
                       {item.action.replaceAll(".", " / ").replaceAll("_", " ")}
                     </strong>
@@ -839,10 +932,20 @@ function RecordTable({ section, rows, actorId, action, viewOrder, setDetail }) {
                       {item.entity_id.slice(0, 8)}
                     </small>
                   </td>
-                  <td>{item.actor_name}</td>
-                  <td className="admin-reason">{item.reason}</td>
-                  <td>{date(item.created_at, true)}</td>
-                  <td>
+                  <td role="cell" data-label={headings[1]}>
+                    {item.actor_name}
+                  </td>
+                  <td
+                    role="cell"
+                    data-label={headings[2]}
+                    className="admin-reason"
+                  >
+                    {item.reason}
+                  </td>
+                  <td role="cell" data-label={headings[3]}>
+                    {date(item.created_at, true)}
+                  </td>
+                  <td role="cell" data-label={headings[4]}>
                     <button
                       className="text-link"
                       onClick={() => setDetail({ type: "activity", item })}
@@ -891,11 +994,40 @@ function ConfirmAction({ value, onClose, onSuccess }) {
   return (
     <Dialog
       label={label}
+      className="admin-confirm-dialog"
       onClose={() => {
         if (!busy) onClose();
       }}
+      footer={
+        <div className="admin-dialog-actions">
+          <button
+            className="button secondary"
+            type="button"
+            disabled={busy}
+            onClick={onClose}
+          >
+            Go back
+          </button>
+          <button
+            form="admin-confirm-action"
+            type="submit"
+            className="button primary"
+            disabled={busy}
+          >
+            {busy ? "Saving…" : label}
+          </button>
+        </div>
+      }
     >
-      <form className="dialog-body form-stack" onSubmit={submit}>
+      <form
+        id="admin-confirm-action"
+        className="dialog-body form-stack"
+        onSubmit={submit}
+        aria-busy={busy}
+      >
+        <div className="admin-confirm-emblem" aria-hidden="true">
+          <ShieldCheckIcon />
+        </div>
         <span className="eyebrow">CONFIRM ADMINISTRATOR ACTION</span>
         <h2>{label}</h2>
         <p className="muted">
@@ -917,6 +1049,7 @@ function ConfirmAction({ value, onClose, onSuccess }) {
         <label>
           Reason
           <textarea
+            disabled={busy}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             required
@@ -930,6 +1063,7 @@ function ConfirmAction({ value, onClose, onSuccess }) {
           <label>
             Your current password
             <input
+              disabled={busy}
               type="password"
               autoComplete="current-password"
               value={password}
@@ -943,19 +1077,10 @@ function ConfirmAction({ value, onClose, onSuccess }) {
             {error}
           </p>
         ) : null}
-        <div className="admin-dialog-actions">
-          <button
-            className="button secondary"
-            type="button"
-            disabled={busy}
-            onClick={onClose}
-          >
-            Go back
-          </button>
-          <button className="button primary" disabled={busy}>
-            {busy ? "Saving…" : label}
-          </button>
-        </div>
+        <p className="admin-confirm-footnote">
+          <ClockIcon />
+          Your account, reason, and this change will be recorded.
+        </p>
       </form>
     </Dialog>
   );
@@ -963,9 +1088,16 @@ function ConfirmAction({ value, onClose, onSuccess }) {
 
 function DetailDialog({ detail, onClose }) {
   const item = detail.item;
+  const title =
+    item?.title ||
+    item?.snapshot_title ||
+    item?.action?.replaceAll(".", " / ") ||
+    "Record details";
+  const cover = item?.photos?.[0] || item?.snapshot_photo;
   return (
     <Dialog
       wide
+      className="admin-inspector"
       label={
         detail.type === "order"
           ? "Order details"
@@ -974,7 +1106,30 @@ function DetailDialog({ detail, onClose }) {
             : "Audit details"
       }
       onClose={onClose}
+      footer={
+        <div className="admin-inspector-footer">
+          <span>
+            <ShieldCheckIcon />
+            ADMIN / RECORD REVIEW
+          </span>
+          <button className="button secondary" onClick={onClose}>
+            Done reviewing
+          </button>
+        </div>
+      }
     >
+      <div className={`admin-inspect-hero ${cover ? "has-cover" : ""}`}>
+        {cover ? (
+          <Media src={cover} alt="" sizes="(max-width:700px) 100vw, 820px" />
+        ) : (
+          <CubeTransparentIcon aria-hidden="true" />
+        )}
+        <div className="admin-inspect-shade" />
+        <span className="eyebrow">
+          {detail.type.toUpperCase()} / {item ? item.id.slice(0, 8) : "REVIEW"}
+        </span>
+        <h2>{title}</h2>
+      </div>
       <div className="dialog-body admin-detail">
         {detail.error ? (
           <p role="alert">{detail.error}</p>
@@ -982,14 +1137,6 @@ function DetailDialog({ detail, onClose }) {
           <p role="status">Loading order…</p>
         ) : (
           <>
-            <span className="eyebrow">
-              {detail.type.toUpperCase()} / {item.id.slice(0, 8)}
-            </span>
-            <h2>
-              {item.title ||
-                item.snapshot_title ||
-                item.action.replaceAll(".", " / ")}
-            </h2>
             {detail.type === "listing" ? (
               <>
                 <div className="admin-photo-grid">
@@ -1099,6 +1246,7 @@ function Security({ user, onSuccess }) {
     [confirmPassword, setConfirm] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
   async function submit(event) {
     event.preventDefault();
     if (busy) return;
@@ -1123,7 +1271,7 @@ function Security({ user, onSuccess }) {
     <div className="admin-security-grid">
       <section className="admin-panel admin-security-form">
         <span className="admin-security-icon">
-          <ShieldCheckIcon />
+          <LockClosedIcon />
         </span>
         <span className="eyebrow">ACCOUNT SECURITY</span>
         <h2>
@@ -1136,11 +1284,22 @@ function Security({ user, onSuccess }) {
             ? "Replace the initial setup password to unlock the control room. Choose a password that only you know."
             : "Updating your password signs out all other sessions. This session stays active."}
         </p>
-        <form className="form-stack" onSubmit={submit}>
+        <form className="form-stack" onSubmit={submit} aria-busy={busy}>
+          <button
+            className="admin-password-toggle"
+            type="button"
+            aria-pressed={showPasswords}
+            disabled={busy}
+            onClick={() => setShowPasswords((value) => !value)}
+          >
+            {showPasswords ? <EyeSlashIcon /> : <EyeIcon />}
+            {showPasswords ? "Hide passwords" : "Show passwords"}
+          </button>
           <label>
             Current password
             <input
-              type="password"
+              type={showPasswords ? "text" : "password"}
+              disabled={busy}
               autoComplete="current-password"
               value={currentPassword}
               onChange={(event) => setCurrent(event.target.value)}
@@ -1150,7 +1309,8 @@ function Security({ user, onSuccess }) {
           <label>
             New password
             <input
-              type="password"
+              type={showPasswords ? "text" : "password"}
+              disabled={busy}
               autoComplete="new-password"
               minLength={12}
               maxLength={72}
@@ -1165,7 +1325,8 @@ function Security({ user, onSuccess }) {
           <label>
             Confirm new password
             <input
-              type="password"
+              type={showPasswords ? "text" : "password"}
+              disabled={busy}
               autoComplete="new-password"
               minLength={12}
               maxLength={72}
@@ -1186,12 +1347,16 @@ function Security({ user, onSuccess }) {
         </form>
       </section>
       <section className="admin-panel admin-security-notes">
+        <div className="admin-security-art" aria-hidden="true">
+          <span />
+          <ShieldCheckIcon />
+        </div>
         <span className="eyebrow">BUILT-IN PROTECTION</span>
         <h2>Your access, protected.</h2>
         {[
           [
-            "Server-verified roles",
-            "Every admin request checks your current database role and account status.",
+            "Administrator access",
+            "Your permissions are checked on every action in the control room.",
           ],
           [
             "Session revocation",
