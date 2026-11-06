@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export default function CinematicWorlds({ games, paused, controller }) {
+export default function CinematicWorlds({
+  games,
+  paused,
+  controller,
+  progress,
+}) {
   const host = useRef(null),
     pausedRef = useRef(paused),
     requestLoad = useRef(null);
@@ -31,7 +36,7 @@ export default function CinematicWorlds({ games, paused, controller }) {
         return;
       loading = true;
       try {
-        const { createWorldScene } = await import("@/lib/world-scene.mjs");
+        const { createWorldScene } = await import("@/lib/journey-scene.mjs");
         if (disposed || preference.matches) return;
         controller.current = createWorldScene(element, games, {
           paused: pausedRef.current,
@@ -42,13 +47,7 @@ export default function CinematicWorlds({ games, paused, controller }) {
             if (!disposed) setReady(false);
           },
         });
-        controller.current.setProgress(
-          Number(
-            element
-              .closest(".cinema-journey")
-              ?.style.getPropertyValue("--cinema-scroll") || 0,
-          ) * 2,
-        );
+        controller.current.setProgress(progress.current);
       } catch {
         if (!disposed) setReady(false);
       }
@@ -66,7 +65,7 @@ export default function CinematicWorlds({ games, paused, controller }) {
       controller.current?.dispose();
       controller.current = null;
     };
-  }, [games, controller]);
+  }, [games, controller, progress]);
   return (
     <div
       className="cinematic-world-scene"

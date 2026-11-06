@@ -18,10 +18,11 @@ import Media from "./components/Media";
 import GamePreview from "./components/GamePreview";
 import DiscoveryMotion from "./components/DiscoveryMotion";
 import DiscoveryCard from "./components/DiscoveryCard";
-import CinematicHero from "./components/CinematicHero";
+import WorldJourney from "./components/WorldJourney";
 import PortalEntrance from "./components/PortalEntrance";
 import GameVault from "./components/GameVault";
 import "./cinematic.css";
+import "./world-journey.css";
 
 const featuredGames = catalog.slice(0, 3);
 
@@ -55,12 +56,10 @@ export default function Discover() {
     if (portal || !vaultRequested.current) return;
     vaultRequested.current = false;
     const frame = requestAnimationFrame(() => {
-      document
-        .getElementById("game-vault")
-        ?.scrollIntoView({
-          behavior: motionDisabled ? "auto" : "smooth",
-          block: "start",
-        });
+      document.getElementById("game-vault")?.scrollIntoView({
+        behavior: motionDisabled ? "auto" : "smooth",
+        block: "start",
+      });
       document
         .getElementById("game-vault-title")
         ?.focus({ preventScroll: true });
@@ -105,7 +104,7 @@ export default function Discover() {
   return (
     <DiscoveryMotion paused={motionDisabled}>
       <div className="discover-page">
-        <CinematicHero
+        <WorldJourney
           games={featuredGames}
           onPreview={openPreview}
           onPortal={setPortal}
