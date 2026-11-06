@@ -75,6 +75,9 @@ test("initial-password users can only access the explicitly permitted security f
 test("session versions and password inputs are bounded", () => {
   assert.equal(verifySessionClaims(createSessionToken(id, 3)).sv, 3);
   assert.throws(() => validateNewPassword("short"));
+  assert.throws(() => validateNewPassword("12345"));
+  assert.equal(validateNewPassword("123456"), "123456");
+  assert.equal(validateNewPassword("abcdef"), "abcdef");
   assert.throws(() => validateNewPassword("😀".repeat(19)));
   assert.equal(
     validateNewPassword("A sufficiently long passphrase"),

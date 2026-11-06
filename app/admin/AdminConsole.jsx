@@ -1312,14 +1312,14 @@ function Security({ user, onSuccess }) {
               type={showPasswords ? "text" : "password"}
               disabled={busy}
               autoComplete="new-password"
-              minLength={12}
+              minLength={6}
               maxLength={72}
               value={newPassword}
               onChange={(event) => setNew(event.target.value)}
               required
             />
             <small>
-              At least 12 characters. A unique passphrase works well.
+              At least 6 characters. Digits are accepted.
             </small>
           </label>
           <label>
@@ -1328,7 +1328,7 @@ function Security({ user, onSuccess }) {
               type={showPasswords ? "text" : "password"}
               disabled={busy}
               autoComplete="new-password"
-              minLength={12}
+              minLength={6}
               maxLength={72}
               value={confirmPassword}
               onChange={(event) => setConfirm(event.target.value)}
